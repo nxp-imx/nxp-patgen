@@ -1,0 +1,1324 @@
+/*
+ * Copyright 2019 NXP
+ */
+/*
+ * The code contained herein is licensed under the GNU General Public
+ * License. You may obtain a copy of the GNU General Public License
+ * Version 2 or later at the following locations:
+ *
+ * http://www.opensource.org/licenses/gpl-license.html
+ * http://www.gnu.org/copyleft/gpl.html
+ */
+
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
+#include <stdint.h>
+#include <math.h>
+#include <getopt.h>
+#include <sys/param.h>
+
+#include "bitmap.h"
+
+#define DEFAULT_PATTERN         "font"
+#define DEFAULT_EXTENSION       "rgb"
+#define DEFAULT_OUTPUT_FORMAT   "bgra"
+#define DEFAULT_HEIGHT           0
+#define DEFAULT_WIDTH            0
+#define DEFAULT_SIZE            "640x480"
+#define DEFAULT_STRIDE           DEFAULT_WIDTH
+#define DEFAULT_CHECKER          1
+#define DEFAULT_ROTATION         0
+#define DEFAULT_BORDER           0
+#define DEFAULT_HEADER           0
+#define DEFAULT_FOOTER           0
+#define DEFAULT_DEBUG            0
+#define DEFAULT_BODY_FONT_NAME   "body-font.ttf"
+#define DEFAULT_HEADER_FONT_NAME "header-font.ttf"
+
+#define DEFAULT_SEPARATOR_STRING \
+"----------------------------------------------------------------\n"
+
+#define MAX_PREFIX 128
+
+typedef struct param_s {
+	long w;
+	long h;
+	long stride;
+	long checker_size;
+	long steps;
+	long rotation;
+
+	double intensity;
+	double min_intensity;
+	double max_intensity;
+	double alpha;
+
+	int verbose;
+	int debug;
+	int header;
+	int footer;
+	int grid;
+	int border;
+
+	long color;
+	uint32_t pixel;
+
+	char size[MAX_PREFIX];
+	char pattern[MAX_PREFIX];
+	char prefix[MAX_PREFIX];
+	char out[MAX_PATH];
+	char fb[MAX_PATH];
+	char extension[16];
+	char outformat[MAX_PREFIX];
+	unsigned int o_fourcc;
+
+	/* char in[MAX_PATH]; */
+	/* FILE *fin;*/
+	FILE *fout;
+	bitmap_t bm;
+} param_t;
+
+static const char help[] =
+	"\nusage: %s\n"
+	"\t-v -verbose\n\t\tEcho the command parameters\n\n"
+	"\t-d -debug [level]\n\t\tSets the debug level\n\n"
+	"\t-p -pattern [pattern]\n\t\tSelect the type pattern to generate:\n"
+	"\t\tchecker\t\tcreates a checkerboard pattern using -size\n\n"
+	"\t\tcircle\t\tDraw circle with a background fill\n"
+	"\t\tcolorbar\tVertical color bars\n"
+	"\t\tcolorbar2\tAlternate colors bars\n"
+	"\t\tfill\t\tFill the pattern with -color at -intensity).\n"
+	"\t\tfont\t\tPattern with some sample text from the fonts in use.\n"
+	"\t\tgraybar\t\t11 shaded bars, the default is white bars from\n"
+	"\t\t\t\t100%% to 0%%. The -color, -steps, -min_i, and max_i\n"
+	"\t\t\t\tparameters can be used with this pattern.\n"
+	"\t\tgradient\tCreates four horizontal gradient bars red,\n"
+	"\t\t\t\tgreen , blue and white.\n\n"
+	"\t\tvgradient\tCreates four vertical gradient bars red, green,\n"
+	"\t\t\t\tblue, and white.\n"
+	"\t\thsv\t\tCreates an HSV color transtion gradient. The\n"
+	"\t\t\t\t-i sets the V (value) for HSV.\n"
+	"\t\ttest\t\tCreates a testcard like pattern.\n\n"
+	"\t\twheel\tCreates an HSV color wheel. The -i sets the V\n"
+	"\t\t\t(value) for HSV.\n\n"
+	"\t-border\n\t\tAdds a border to the patern\n\n"
+	"\t-header\n\t\tAdds header text to the pattern border\n\n"
+	"\t-footer\n\t\tAdds footer text to the pattern border\n\n"
+	"\t-a -alpha [alpha (%%)]\n\t\tSets the alpha value. Default is 100.0%%\n\n"
+	"\t-c -[RGB color in hex 0xaarrbbgg]\n"
+	"\t\tSets the color default for the fill and\n"
+	"\t\tgraybar patterns. Default is white.\n\n"
+	"\t-i -intensity [intensity (%%)]\n"
+	"\t\tSets the color intensity for the colorbar, fill and\n"
+	"\t\thsv patterns. Default is 100.0%%\n\n"
+	"\t-min_i [minimum intensity (%%)] \n"
+	"\t\tSets the minimum intensity for the graybar pattern. Default is 0.0%%\n\n"
+	"\t-max_i[maximum intensity (%%)]\n"
+	"\t\tSets the maximum intensity for the graybar pattern. Default is 100.0%%\n\n"
+	"\t-steps [steps]\n"
+	"\t\tSets the number steps in the graybar pattern\n\n"
+	"\t-size  -checker_size [size (pixels)]\n"
+	"\t\tSets the size of the checker board squares in pixels\n\n"
+	"\t-o -outfile [prefix string]\n"
+	"\t\tAdds a prefix to the default pattern name\n\n"
+	"\t-pix_fmt\n"
+	"\t\tSupported formats are:\n"
+	"\t\t\tbgra     32 bits per pixel RGB\n"
+	"\t\t\trgb565le 16 bits per pixel RGB\n"
+	"\t\t\tyuv444p  24 bits per pixel YUV (3 planes Y, U and V)\n"
+	"\t\t\tyuv420p  12 bits per pixel YUV (3 planes Y, U and V)\n"
+	"\t\t\tnv12     12 bits per pixel YUV (2 planes Y and UV)\n\n"
+	"\t-vs -vsize [HxW (pixelsxpixels] Sets the width and hight of the output\n\n"
+	"\t-r -rotation [rotation (degrees)] rotates the final image to 0, 90, 180, or 270\n\n"
+	"\t-stride [stride (pixels)] Sets the stride if it is larger the the width\n\n"
+	"\t-fb [frame buffer device] Name of the framebuffer device file\n\n"
+;
+
+static void command_usage(char *argv0)
+{
+	fprintf(stderr, help, argv0);
+}
+
+enum {
+	OPT_STRIDE = 0x1000,
+	OPT_PIX_FMT,
+	OPT_VSIZE,
+	OPT_STEPS,
+	OPT_MIN_I,
+	OPT_MAX_I,
+	OPT_HEADER,
+	OPT_BORDER,
+	OPT_FOOTER,
+	OPT_SIZE,
+	OPT_GRID,
+	OPT_FB,
+
+};
+
+static struct option long_options[] =
+{
+	{ "alpha",   required_argument,       0, 'a' },
+	{ "color",   required_argument,       0, 'c' },
+	{ "debug",   required_argument,       0, 'd' },
+	{ "help",    no_argument,             0, 'h' },
+	{ "intensity", required_argument,     0, 'i' },
+	{ "outname", required_argument,       0, 'o' },
+	{ "pattern", required_argument,       0, 'p' },
+	{ "rotation", required_argument,      0, 'r' },
+	{ "verbose", no_argument,             0, 'v' },
+	{ "border",  no_argument,             0, OPT_BORDER },
+	{ "footer",  no_argument,             0, OPT_FOOTER },
+	{ "grid",    no_argument,             0, OPT_GRID },
+	{ "header",  no_argument,             0, OPT_HEADER },
+	{ "min_i",   required_argument,       0, OPT_MIN_I },
+	{ "max_i",   required_argument,       0, OPT_MAX_I },
+	{ "steps",   required_argument,       0, OPT_STEPS },
+	{ "size",    required_argument,       0, OPT_SIZE },
+	{ "vsize",   required_argument,       0, OPT_VSIZE },
+	{ "vs",      required_argument,       0, OPT_VSIZE },
+	{ "stride",  required_argument,       0, OPT_STRIDE /*'s'*/ },
+	{ "pix_fmt", required_argument,       0, OPT_PIX_FMT },
+	{ "fb",      required_argument,       0, OPT_FB },
+	{ 0, 0, 0, 0 }
+};
+
+static int command_parse(int argc, char **argv, param_t *p)
+{
+	int index;
+	int c;
+
+	opterr = 0;
+
+	if  (argc < 2) {
+		command_usage(argv[0]);
+		/*exit(1);*/
+	}
+
+	while (1) {
+		/* getopt_long stores the option index here. */
+		int option_index = 0;
+
+		c = getopt_long_only(argc, argv, "a:c:d:hi:o:p:r:v",
+				     long_options, &option_index);
+		if (p->verbose)
+			fprintf(stderr, "c %d, option_index %d\n",
+				c, option_index);
+
+		/* Detect the end of the options. */
+		if (c == -1)
+			break;
+
+		switch (c) {
+		case 'a':
+			p->alpha = strtod(optarg, NULL);
+			if (p->verbose)
+				fprintf(stderr, "-a alpha =     %-3.3f\n",
+					p->alpha);
+			break;
+		case OPT_BORDER:
+			p->border = 1;
+			if (p->verbose)
+				fprintf(stderr, "-b -border =    %d\n",
+					p->border);
+			break;
+		case 'c':
+			p->color = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-c -color =     0x%08lx\n",
+					p->color);
+			break;
+		case 'd':
+#ifndef DEBUG
+			fprintf(stderr,
+				"\n\nWarning: not built for debug configuraiton.\n"
+				"debug option has not effect.\n\n\n");
+#endif
+			if (optarg)
+				p->debug = strtol(optarg, NULL, 0);
+			else
+				p->debug = 1;
+			if (p->verbose)
+				fprintf(stderr, "-d -debug =     %d\n",
+					p->debug);
+
+			break;
+		case OPT_FOOTER:
+			p->footer = 1;
+			if (p->verbose)
+				fprintf(stderr, "-f -footer =    %d\n",
+					p->footer);
+			break;
+		case OPT_GRID:
+			p->grid = 1;
+			if (p->verbose)
+				fprintf(stderr, "-grid =        %d\n",
+					p->grid);
+			break;
+		case 'i':
+			p->intensity = strtod(optarg, NULL);
+			if (p->verbose)
+				fprintf(stderr, "-i -intensity = %-3.3f\n",
+					p->intensity);
+			break;
+		case OPT_SIZE:
+			p->checker_size = strtol(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-size = %lu\n",
+					p->checker_size);
+			break;
+		case  OPT_MIN_I:
+			p->min_intensity = strtod(optarg, NULL);
+			if (p->verbose)
+				fprintf(stderr, "min_i = %-3.3f\n",
+					p->min_intensity);
+			break;
+		case  OPT_MAX_I:
+			p->max_intensity = strtod(optarg, NULL);
+			if (p->verbose)
+				fprintf(stderr, "-max_i = %-3.3f\n",
+					p->max_intensity);
+			break;
+		case OPT_STEPS:
+			p->steps = strtol(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr,
+					"-steps = %lu\n", p->steps);
+			break;
+		case 'o':
+			strncpy(p->prefix, optarg, sizeof(p->prefix));
+			if (p->verbose)
+				fprintf(stderr, "-o =   %s\n",
+					p->prefix);
+			break;
+		case OPT_FB:
+			strncpy(p->fb, optarg, sizeof(p->fb));
+			if (p->verbose)
+				fprintf(stderr, "-fb =   %s\n", p->fb);
+			break;
+		case 'p':
+			strncpy(p->pattern, optarg, sizeof(p->pattern));
+			if (p->verbose)
+				fprintf(stderr, "-p -pattern =   %s\n",
+					p->pattern);
+			break;
+		case OPT_VSIZE:
+			strncpy(p->size, optarg, sizeof(p->size));
+			if (p->verbose)
+				fprintf(stderr, "-vs -video_size =   %s\n",
+					p->size);
+			break;
+		case OPT_STRIDE:
+			p->stride = strtol(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-stride =   %lu\n",
+					p->stride);
+			break;
+		case 'r':
+			p->rotation = strtol(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-r -rotation =   %lu\n",
+					p->rotation);
+			break;
+		case OPT_HEADER:
+			p->header = 1;
+			if (p->verbose)
+				fprintf(stderr, "-t --header =    %d\n",
+					p->header);
+			break;
+		case 'h':
+			if (p->verbose)
+				fprintf(stderr, "-h -help is set\n");
+			command_usage(argv[0]);
+			exit(1);
+			break;
+		case 'v':
+			p->verbose = 1;
+			fprintf(stderr, "command line args:\n");
+			fprintf(stderr, "-v -verbose is set\n");
+			break;
+		case 'w':
+			p->w = strtol(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-w --width =     %lu\n",
+					p->w);
+			break;
+		case OPT_PIX_FMT:
+			strncpy(p->outformat, optarg, sizeof(p->outformat));
+			if (p->verbose)
+				fprintf(stderr, "-pix_fmt =      %s\n",
+					p->outformat);
+			break;
+
+		case '?':
+			break;
+		default:
+			fprintf(stderr, "Default case:\n");
+			command_usage(argv[0]);
+			return 1;
+		}
+	}
+
+	for (index = optind; index < argc; index++) {
+		command_usage(argv[0]);
+		fprintf(stderr, "Non-option argument %s\n", argv[index]);
+	}
+
+	return 0;
+}
+
+static char* basename(char const *path)
+{
+	char *s = strrchr(path, '/');
+	if (!s)
+		return strdup(path);
+	else
+		return strdup(s + 1);
+}
+
+static void set_file_name(param_t *p)
+{
+	long h, w;
+	if (p->rotation == 90 || p->rotation == 270) {
+		h = p->w;
+		w = p->h;
+	} else {
+		w = p->w;
+		h = p->h;
+	}
+	if (strnlen(p->fb, MAX_PATH) > 0)
+		strncpy(p->out, p->fb, MAX_PATH);
+	else if (strnlen(p->prefix, MAX_PREFIX) > 0)
+		snprintf(p->out, MAX_PATH,
+			 "%s-%s-%ldx%ld-%s.%s",
+			 p->prefix, p->pattern, w, h,
+			 p->outformat, p->extension);
+	else
+		snprintf(p->out, MAX_PATH,
+			 "%s-%ldx%ld-%s.%s",
+			 p->pattern, w, h,
+			 p->outformat, p->extension);
+}
+
+static void set_params(param_t *p)
+{
+	uint32_t c;
+
+	bitmap_get_color(&p->bm, "white", &c);
+	p->color = c;
+	p->pixel = p->color;
+	p->w = DEFAULT_WIDTH;
+	p->h = DEFAULT_HEIGHT;
+	p->stride = DEFAULT_STRIDE;
+	p->checker_size = DEFAULT_CHECKER;
+	p->rotation = DEFAULT_ROTATION;
+	p->steps = -1;
+	p->prefix[0] = 0;
+	p->debug = DEFAULT_DEBUG;
+	p->verbose = 0;
+	p->header = DEFAULT_HEADER;
+	p->footer = DEFAULT_FOOTER;
+	p->grid = 0;
+	p->border = DEFAULT_BORDER;
+	p->intensity = 100.0;
+	p->min_intensity = 0.0;
+	p->max_intensity = 100.0;
+	p->alpha = 100.0;
+	p->o_fourcc = FORMAT_BGRA8888; /* bgra */
+	strcpy(p->pattern, DEFAULT_PATTERN);
+	strcpy(p->outformat, DEFAULT_OUTPUT_FORMAT);
+	strcpy(p->extension, DEFAULT_EXTENSION);
+	strcpy(p->size, DEFAULT_SIZE);
+	strcpy(p->fb, "");
+}
+
+static void update_params(param_t *p)
+{
+	int n;
+
+	fprintf(stderr, "Updating parameters from command line\n");
+	p->pixel = p->color & 0xffffff;
+	p->pixel = bitmap_set_intensity(&p->bm, p->pixel, p->intensity);
+	p->pixel = bitmap_set_alpha(&p->bm, p->pixel, p->alpha);
+
+	if (strlen(p->size) > 0) {
+		n = sscanf(p->size, "%lux%lu", &p->w, &p->h);
+		if (n < 2) {
+			fprintf(stderr, "\nFailed to parse video_size");
+			exit(1);
+		}
+	}
+	if ((p->w == 0) || (p->h == 0)) {
+		fprintf(stderr, "\nHeight or Width cannot be zero!");
+		exit(1);
+	}
+	if ((p->w > MAX_WIDTH)) {
+		fprintf(stderr, "\nWidth cannot be greater than %u ",
+			MAX_WIDTH);
+		exit(1);
+	}
+	if (p->h > MAX_HEIGHT) {
+		fprintf(stderr, "\nHeight cannot be greater than %u ",
+			MAX_HEIGHT);
+		exit(1);
+	}
+
+	if (p->stride < p->w)
+		p->stride = p->w;
+
+	if (strncmp("rgb565le", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_BGR565;
+	} else if (strncmp("yuv444p", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUV444;
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("nv12", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_NV12;
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("yuv420p", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUV420;
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("bgra", p->outformat, 4) == 0) {
+		p->o_fourcc = FORMAT_BGRA8888;
+		strcpy(p->extension, "rgb");
+	} else {
+		fprintf(stderr,
+			"\nUnsupported format. Use one of the following:\n"
+			"\tbgra - default\n"
+			"\trgb565le\n"
+			"\tyuv420p\n"
+			"\tyuv444p\n"
+			"\tnv12\n\n"
+		       );
+		exit(0);
+	}
+	/* default is bgra */
+	set_file_name(p);
+}
+
+static void show_params(param_t *p)
+{
+	uint32_t temp_alpha;
+
+	fprintf(stderr, DEFAULT_SEPARATOR_STRING);
+	fprintf(stderr, "intensity:               %8.3f\n", p->intensity);
+	fprintf(stderr, "min_intensity:           %8.3f\n", p->min_intensity);
+	fprintf(stderr, "max_intensity:           %8.3f\n", p->max_intensity);
+
+	temp_alpha =  (uint32_t)round(p->alpha * (double)MAX_RGBA / 100.0);
+
+	fprintf(stderr, "alpha:                   %8.3f (%u)\n",
+		p->alpha, temp_alpha);
+	fprintf(stderr, "fill color:            0x%08lx\n", p->color);
+	fprintf(stderr, "shaded color w/ alpha: 0x%08x\n", p->pixel);
+	fprintf(stderr, "width:                   %8ld\n", p->w);
+	fprintf(stderr, "height:                  %8ld\n", p->h);
+	fprintf(stderr, "stride:                  %8ld\n", p->stride);
+	fprintf(stderr, "rotation:                %8ld\n", p->rotation);
+	fprintf(stderr, "checker_size:            %8ld\n", p->checker_size);
+	fprintf(stderr, "steps:                   %8ld\n", p->steps);
+	fprintf(stderr, "verbose:                 %8d\n", p->verbose);
+	fprintf(stderr, "debug:                   %8d\n", p->debug);
+	fprintf(stderr, "header:                  %8d\n", p->header);
+	fprintf(stderr, "footer:                  %8d\n", p->footer);
+	fprintf(stderr, "border:                  %8d\n", p->border);
+	fprintf(stderr, "grid:                    %8d\n", p->grid);
+	fprintf(stderr, "size:                           %s\n", p->size);
+	fprintf(stderr, "pattern:                        %s\n", p->pattern);
+	fprintf(stderr, "pattern file:                   %s\n", p->out);
+	fprintf(stderr, "frame buffer device:            %s\n", p->fb);
+	fprintf(stderr, "format:                         %s\n", p->outformat);
+}
+
+static int get_border_size(param_t *param)
+{
+	int s = MIN(param->w, param->h);
+	if (s < 1080)
+		return 32;
+	else if (s <= 480)
+		return 16;
+	else
+		return 64;
+}
+
+static int generate_borders(param_t *param, int *margin, char *title)
+{
+	int t, b, l, m, r;
+	uint32_t color;
+	uint32_t bw[2];
+	char text[64];
+
+	fprintf(stderr, "Generating borders\n");
+
+	bitmap_get_color(&param->bm, "dark_gray", &color);
+	if (param->border == 0) {
+		*margin = 0;
+		/* fill center */
+		bitmap_fill_rectangle(&param->bm, 0, 0,
+				      param->w - 1, param->h - 1, color);
+		return 0;
+	}
+
+	m = get_border_size(param);
+	*margin = m;
+
+	m = *margin;
+	t = m;
+	l = m;
+	r = param->w - m;
+	b = param->h - m;
+
+	bitmap_get_color(&param->bm, "black", &bw[0]);
+	bitmap_get_color(&param->bm, "white", &bw[1]);
+
+	/* fill with checker board */
+	bitmap_checker(&param->bm, 0, 0, param->w, param->h, bw, 1);
+
+	/* fill center */
+	bitmap_fill_rectangle(&param->bm, l - m / 4, t - m / 4,
+			      r + m / 4, b + m / 4, color);
+
+	bitmap_corners(&param->bm, m);
+
+	if (param->header != 0) {
+		if (title != NULL && (strncmp("none", title, 4) != 0)) {
+			fprintf(stderr, "Generating header\n");
+
+			if (strncmp("default", title, 7) == 0)
+				snprintf(text, sizeof(text), "%ld x %ld",
+					 param->w, param->h);
+			else
+				strncpy(text, title, sizeof(text));
+			t = m / 8;
+			l = param->w / 4;
+			r = param->w * 3 / 4;
+			b = m - m / 4 - 2;
+			bitmap_fill_rectangle(&param->bm, l, t, r, b, color);
+
+			bitmap_render_font(&param->bm,
+					   DEFAULT_HEADER_FONT_NAME,
+					   text,
+					   m / 2,
+					   param->w / 2,
+					   m / 2 - 2,
+					   bw[1]);
+		}
+	}
+
+	if (param->footer != 0) {
+		int ret;
+		fprintf(stderr, "Generating footer\n");
+		if (param->w <= 640)
+			ret = snprintf(text, sizeof(text), "%s",
+				       param->pattern);
+		else
+			ret = snprintf(text, sizeof(text),
+				       "pattern: %s | file: %s",
+				       param->pattern, basename(param->out));
+
+		/* needed to prevent compiler warning */
+		if (ret < 0)
+			fprintf(stderr, "Warning footer string was truncated!");
+
+		t =  param->h - m * 3 / 4 + 2;
+		l = param->w / 8;
+		r = param->w * 7 / 8;
+		b = param->h - 2;
+
+		bitmap_fill_rectangle(&param->bm, l, t, r, b, color);
+
+		bitmap_render_font(&param->bm,
+				   DEFAULT_HEADER_FONT_NAME,
+				   text,
+				   m / 2,
+				   param->w / 2,
+				   b - m / 2 + 6,
+				   bw[1]);
+	}
+	return 0;
+}
+
+static int generate_test_circles(param_t *param, int x, int y, int r)
+{
+	uint32_t gw[2];
+
+	bitmap_get_color(&param->bm, "dark_gray", &gw[0]);
+	bitmap_get_color(&param->bm, "white", &gw[1]);
+
+	bitmap_draw_circle(&param->bm, x, y, r + 2, gw[0]);
+	bitmap_draw_circle(&param->bm, x, y, r + 1, gw[1]);
+	bitmap_draw_circle(&param->bm, x, y, r,     gw[1]);
+	bitmap_draw_circle(&param->bm, x, y, r - 1, gw[1]);
+	bitmap_draw_circle(&param->bm, x, y, r - 2, gw[0]);
+
+	return 0;
+}
+
+static int generate_test_center(param_t *param,
+				int x0, int y0,
+				int x1, int y1)
+{
+	int t, b, l, m, r, s;
+	char text[64];
+	float ftemp;
+	uint32_t bw[2];
+
+	t = y0;
+	b = y1;
+	l = x0;
+	r = x1;
+
+	ftemp = 0.02 * param->w;
+	m = round(ftemp);
+
+	bitmap_get_color(&param->bm, "black", &bw[0]);
+	bitmap_get_color(&param->bm, "white", &bw[1]);
+
+	/* fill center */
+	bitmap_fill_rectangle(&param->bm, l, t, r, b, bw[1]);
+	bitmap_fill_rectangle(&param->bm, l + m, t + m, r - m, b - m, bw[0]);
+
+	snprintf(text, sizeof(text), "%ld x %ld",  param->w, param->h);
+	s = round(param->h * 0.1); /* font size */
+
+	bitmap_render_font(&param->bm,
+			   DEFAULT_BODY_FONT_NAME,
+			   text,
+			   s,
+			   param->w / 2,
+			   (param->h / 2) - (s / 8),
+			   bw[1]);
+
+	return 0;
+}
+
+static int generate_colorbar(param_t *param, int m)
+{
+	int i = 0, num_colors;
+	uint32_t colors[16];
+
+	bitmap_get_color(&param->bm, "white",   &colors[i++]);
+	bitmap_get_color(&param->bm, "yellow",  &colors[i++]);
+	bitmap_get_color(&param->bm, "cyan",    &colors[i++]);
+	bitmap_get_color(&param->bm, "green",   &colors[i++]);
+	bitmap_get_color(&param->bm, "magenta", &colors[i++]);
+	bitmap_get_color(&param->bm, "red",     &colors[i++]);
+	bitmap_get_color(&param->bm, "blue",    &colors[i++]);
+	bitmap_get_color(&param->bm, "black",   &colors[i++]);
+	num_colors = i;
+
+	for (i = 0; i <  num_colors; i++) {
+		colors[i] = bitmap_set_intensity(&param->bm, colors[i],
+						 param->intensity);
+		colors[i] = bitmap_set_alpha(&param->bm, colors[i],
+					     param->alpha);
+	}
+
+	bitmap_hbars(&param->bm, m, m, param->w - m, param->h - m,
+		     colors, num_colors);
+
+	return 0;
+}
+
+static int generate_colorbar2(param_t *param, int m)
+{
+	int s, l, r, t, b, i = 0, num_colors;
+	uint32_t colors[16];
+
+	bitmap_get_color(&param->bm, "white",   &colors[i++]);
+	bitmap_get_color(&param->bm, "yellow",  &colors[i++]);
+	bitmap_get_color(&param->bm, "cyan",    &colors[i++]);
+	bitmap_get_color(&param->bm, "green",   &colors[i++]);
+	bitmap_get_color(&param->bm, "magenta", &colors[i++]);
+	bitmap_get_color(&param->bm, "red",     &colors[i++]);
+	bitmap_get_color(&param->bm, "blue",    &colors[i++]);
+
+	num_colors = i;
+
+	for (i = 0; i <  num_colors; i++) {
+		colors[i] = bitmap_set_intensity(&param->bm, colors[i],
+						 param->intensity);
+		colors[i] = bitmap_set_alpha(&param->bm, colors[i],
+					     param->alpha);
+	}
+
+	s =  (param->h - 2 * m) * 2 / 3;
+	t = m;
+	l = m;
+	b = t + s;
+	r = param->w - m;
+
+	bitmap_hbars(&param->bm, l, t, r, b, colors, num_colors);
+
+	i = 0;
+	bitmap_get_color(&param->bm, "blue",    &colors[i++]);
+	bitmap_get_color(&param->bm, "magenta", &colors[i++]);
+	bitmap_get_color(&param->bm, "yellow",  &colors[i++]);
+	bitmap_get_color(&param->bm, "red",     &colors[i++]);
+	bitmap_get_color(&param->bm, "cyan",    &colors[i++]);
+	bitmap_get_color(&param->bm, "black",   &colors[i++]);
+	bitmap_get_color(&param->bm, "white",   &colors[i++]);
+	num_colors = i;
+
+	/* row of gradients */
+	s =  (param->h - 2 * m) * 90 / 1080;
+	t = b;
+	l = m;
+	b = t + s;
+	r = param->w - m;
+	bitmap_hbars(&param->bm, l, t, r, b, colors, num_colors);
+
+	s =  (param->h - 2 * m) * 125 / 1000;
+	t = b;
+	l = m;
+	b = t + s;
+	r = (param->w - m) * 1150 / 1920;
+
+	bitmap_gradient(&param->bm, l, t, r, b,
+			255,
+			255,
+			255,
+			0,
+			0,
+			0,
+			0);
+
+	l = r;
+	r = (param->w - m);
+	bitmap_hsv_rectangle(&param->bm, l, t, r, b, b - t, 100.0, 300.0);
+
+	/* bottom row  */
+	s =  (param->h - 2 * m) * 125 / 1000;
+	t = b;
+	l = m;
+	b = param->h - m;
+	r = (param->w - 2 * m) * 4 / 7;
+	num_colors = 11;
+
+	for (i = 0; i <  num_colors; i++) {
+		colors[i] = bitmap_set_intensity(&param->bm, param->color,
+						 i * param->intensity / 10.0);
+		colors[i] = bitmap_set_alpha(&param->bm, colors[i],
+					     param->alpha);
+	}
+
+	bitmap_hbars(&param->bm, l, t, r, b, colors, num_colors);
+
+	l = r;
+	r = param->w - m;
+
+	bitmap_get_color(&param->bm, "black", &colors[0]);
+	bitmap_fill_rectangle(&param->bm, l, t, r, b, colors[0]);
+
+	return 0;
+}
+
+static int generate_graybar(param_t *param, int m)
+{
+	int i = 0, num_colors = 11;
+	uint32_t colors[MAX_RGBA + 1];
+
+	double brightness;
+
+	/* todo: clamp the range here and warn */
+	if ((param->steps > 0) &&  (param->steps  <= MAX_RGBA)) {
+		num_colors = param->steps;
+	}
+
+	for (i = 0; i <  num_colors; i++) {
+		brightness =
+			param->min_intensity +  (double)i *
+			(param->max_intensity - param->min_intensity) /
+			(double)(num_colors - 1);
+		colors[i] = bitmap_set_intensity(&param->bm, param->color,
+						 brightness);
+		colors[i] = bitmap_set_alpha(&param->bm, colors[i],
+					     param->alpha);
+		fprintf(stderr,
+			"%s(): min %f max %f brightness %f pixel 0x%08x\n",
+			__func__, param->min_intensity, param->max_intensity,
+			brightness, colors[i]);
+	}
+
+	bitmap_hbars(&param->bm, m, m, param->w - m, param->h - m,
+		     colors, num_colors);
+
+	return 0;
+}
+
+static int generate_fill(param_t *param, int m)
+{
+	bitmap_fill_rectangle(&param->bm,
+			      m, m,
+			      param->w - m, param->h - m,
+			      param->pixel);
+
+	return 0;
+}
+
+static int generate_circle(param_t *param, int m)
+{
+	int r, h, w, l, t, b, radius;
+
+	fprintf(stderr, "Generating circle\n");
+
+	l = m;
+	t = m;
+	r = param->w - m;
+	b = param->h - m;
+	w = r - l;
+	h = b - t;
+
+	bitmap_fill_rectangle(&param->bm, l, t, r, b, param->pixel);
+
+	radius = round(MIN(h, w) * 0.40);
+
+	l = w / 2 + m;
+	t = h / 2 + m;
+	generate_test_circles(param, l, t, radius);
+
+	return 0;
+}
+
+static int generate_checkerboard(param_t *param, int m)
+{
+	uint32_t bw[2];
+
+	fprintf(stderr, "Generating checker board\n");
+
+	bitmap_get_color(&param->bm, "black", &bw[0]);
+	bitmap_get_color(&param->bm, "white", &bw[1]);
+
+	bitmap_checker(&param->bm,
+		       m, m,
+		       param->w - m, param->h - m,
+		       bw,
+		       param->checker_size);
+	return 0;
+}
+
+static int generate_color_legend(param_t *param,
+				 int s,
+				 uint32_t x0,
+				 uint32_t y0)
+{
+	uint32_t colors[7];
+	char text[] = "RGBCYM";
+
+	int i = 0, j, x, y, l, num;
+
+	bitmap_get_color(&param->bm, "red", &colors[i++]);
+	bitmap_get_color(&param->bm, "green", &colors[i++]);
+	bitmap_get_color(&param->bm, "blue", &colors[i++]);
+	bitmap_get_color(&param->bm, "cyan", &colors[i++]);
+	bitmap_get_color(&param->bm, "yellow", &colors[i++]);
+	bitmap_get_color(&param->bm, "magenta", &colors[i++]);
+
+	l = x0;
+	x = l;
+	y = y0 - s * 3 / 4;
+	num = i;
+
+	for (i = 0, j = 0; i < num; i++, j++) {
+		char temp[2];
+		temp[0] = text[i];
+		temp[1] = 0;
+		if (i == 3) {
+			x = l;
+			j = 0;
+			y = y0 + s / 2;
+		}
+		bitmap_render_font(&param->bm,
+				   DEFAULT_BODY_FONT_NAME,
+				   temp,
+				   s,
+				   x + s * j * 3 / 4,
+				   y,
+				   colors[i]);
+	}
+	return 0;
+}
+
+static int generate_font(param_t *param, int m)
+{
+
+	uint32_t color;
+	int i, x, y, s;
+	char text[80];
+	const int sizes[] = { 240, 480, 720, 1080, 2160 };
+	const int margin_sizes[] = { 16, 32, 64 }; 
+
+	generate_fill(param, m);
+	if (m == 0) {
+		m = get_border_size(param);
+	}
+
+	y = param->h * 3 / 4;
+	x = param->w / 8;
+
+	for (i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
+		if (sizes[i] > MIN(param->h, param->w)) {
+			break;
+		}
+		s =  round((double)(sizes[i]) * 0.08);
+		generate_color_legend(param, s, x, y);
+		x +=  (s / 2 + param->w / 16) * (i + 1);
+	}
+
+	x = param->w / 8 + m;
+	y = param->h / 16 + m;
+	bitmap_get_color(&param->bm, "dark_gray", &color);
+
+	for (i = 0; i < sizeof(margin_sizes) /
+	     sizeof(margin_sizes[0]); i++) {
+		if (sizes[i] > MIN(param->h, param->w)) {
+			break;
+		}
+		y += margin_sizes[i] / 2;
+		sprintf(text, "Header: %d (%dP)",
+			margin_sizes[i] / 2, sizes[i]);
+		bitmap_render_font(&param->bm, DEFAULT_HEADER_FONT_NAME,
+				   text,
+				   margin_sizes[i] / 2, x, y, color);
+
+	}
+
+	x = param->w / 2;
+	y = param->h / 8 + m * 2;
+	bitmap_get_color(&param->bm, "dark_gray", &color);
+
+	for (i = 0; i < sizeof(sizes) /
+	     sizeof(sizes[0]); i++) {
+		if (sizes[i] > MIN(param->h, param->w)) {
+			break;
+		}
+		s = round((double)sizes[i] * 0.1);
+		sprintf(text, "Body : %d (%dP)",
+			s, sizes[i]);
+
+		bitmap_render_font(&param->bm, DEFAULT_BODY_FONT_NAME,
+				   text,
+				   s, x, y, color);
+		y += s + s / 2;
+
+	}
+
+	return 0;
+}
+
+static int generate_grid(param_t *param)
+{
+	int x, y, r, h, w, l, t, b, x_step, y_step;
+	uint32_t bw[2];
+
+	if (param->grid == 0) {
+		return 0;
+	}
+
+	fprintf(stderr, "Generating grid\n");
+
+	bitmap_get_color(&param->bm, "magenta", &bw[0]);
+	bitmap_get_color(&param->bm, "blue", &bw[1]);
+
+	l = 0;
+	t = 0;
+	r = param->w - 1;
+	b = param->h - 1;
+	w = r - l;
+	h = b - t;
+
+	x_step =  round(w * 0.1);
+	y_step =  round(h * 0.1);
+
+	fprintf(stderr, "%s(): l %d t %d b %d r %d\n",
+		__func__, l, t, r, b);
+
+	for (y = 0; y <= b; y++) {
+		for (x = 0; x <= r; x++) {
+			if (y % (y_step) == 0)
+				bitmap_draw_pixel(&param->bm, x, y, bw[0]);
+			else if (y % (y_step / 2) == 0)
+				bitmap_draw_pixel(&param->bm, x, y, bw[1]);
+			else if (x % (x_step) == 0)
+				bitmap_draw_pixel(&param->bm, x, y, bw[0]);
+			else if (x % (x_step / 2) == 0)
+				bitmap_draw_pixel(&param->bm, x, y, bw[1]);
+
+			if ((x == r) || (y == b))
+				bitmap_draw_pixel(&param->bm, x, y, bw[0]);
+		}
+	}
+
+	return 0;
+}
+
+static int generate_test_gradients(param_t *param,
+				   uint32_t x0, uint32_t y0,
+				   uint32_t x1, uint32_t y1,
+				   uint8_t *colors, int numcolors,
+				   int orientation)
+{
+	int i, t, b, l, r, s1, s2;
+
+	if (orientation == 0) {
+		b = y1;
+		l = x0;
+		r = x1;
+		s1 = (y1 - y0) / 4;
+		t = b - s1;
+		s2 = 0;
+	} else {
+		s1 = 0;
+		b = y1;
+		l = x0;
+		r = x1;
+		s2 = (x1 - x0) / 4;
+		l = r - s2;
+		t = y0;
+	}
+
+	for (i = 0; i < numcolors; i += 6) {
+		bitmap_gradient(&param->bm,
+				l, t,
+				r, b,
+				colors[i],
+				colors[i + 1],
+				colors[i + 2],
+				colors[i + 3],
+				colors[i + 4],
+				colors[i + 5],
+				orientation);
+		t -= s1;
+		b -= s1;
+		l -= s2;
+		r -= s2;
+	}
+
+	return 0;
+}
+
+static uint8_t gradient_primary_colors[] =
+{
+	255, 255, 255, 0, 0, 0,
+	0, 0, 255, 0, 0, 0,
+	0, 255, 0, 0, 0, 0,
+	255, 0, 0, 0, 0, 0,
+};
+
+static uint8_t gradient_secondary_colors[] =
+{
+	0, 0, 0, 255, 255, 255,
+	0, 0, 0, 0, 255, 255,
+	0, 0, 0, 255, 255, 0,
+	0, 0, 0, 255, 0, 255,
+};
+
+static int generate_test(param_t *param, int m)
+{
+	int t, b, l, r, s, bw, num_colors, i = 0;
+	int vert_top, center_bot, center_top, cb_bot;
+	const int sep = 4;
+	uint32_t colors[16];
+
+	bitmap_get_color(&param->bm, "white",   &colors[i++]);
+	bitmap_get_color(&param->bm, "yellow",  &colors[i++]);
+	bitmap_get_color(&param->bm, "cyan",    &colors[i++]);
+	bitmap_get_color(&param->bm, "green",   &colors[i++]);
+	bitmap_get_color(&param->bm, "magenta", &colors[i++]);
+	bitmap_get_color(&param->bm, "red",     &colors[i++]);
+	bitmap_get_color(&param->bm, "blue",    &colors[i++]);
+	bw = i;
+	bitmap_get_color(&param->bm, "black",   &colors[i++]);
+	num_colors = i;
+	bitmap_get_color(&param->bm, "white",   &colors[i++]);
+	bitmap_get_color(&param->bm, "dark_gray",   &colors[i++]);
+
+	if (m == 0)
+		s = round((double)MIN(param->w, param->h) * 0.05);
+	else
+		s = m;
+
+	l = m;
+	r = param->w - m;
+	t = m;
+	b = t + s * 2;
+	cb_bot = b;
+
+	/* add color bars */
+	l = m + sep;
+	r = param->w - (m + sep);
+	t += sep;
+	bitmap_hbars(&param->bm, l, t, r, b, colors, num_colors);
+
+	/* adding feature from bottom up */
+	t = param->h - (m + (s * 2) + sep);
+	b = param->h - (m + sep);
+	l = m + sep;
+	r = param->w - (m + sep);
+	vert_top = t;
+
+	bitmap_test_lines(&param->bm, l, t, r, b, &colors[bw]);
+
+	t = param->h / 2;
+	l = param->w / 2;
+
+	r =  round(((MIN(t, l) - m) * 0.9)); /* use %90 of min */
+
+	generate_test_circles(param, l, t, r);
+
+	t = round(r * 0.85);
+
+	l = param->w / 2 - t;
+	r = param->w / 2 + t;
+	s = round(MIN(param->w, param->h) * 0.1);
+	t = param->h / 2 - s;
+	b = param->h / 2 + s;
+	center_bot = b;
+	center_top = t;
+
+	generate_test_center(param, l, t, r, b);
+
+	t = center_bot + sep;
+	b = vert_top - sep;
+	l = m + sep;
+	r = param->w - (m + sep);
+
+	generate_test_gradients(param, l, t, r, b,
+				gradient_primary_colors,
+				sizeof(gradient_primary_colors), HORIZONTAL);
+
+	t = cb_bot + sep;
+	b = center_top - sep;
+	generate_test_gradients(param, l, t, r, b,
+				gradient_secondary_colors,
+				sizeof(gradient_secondary_colors), HORIZONTAL);
+
+	s =  round((double)(MIN(param->w, param->h) * 0.08));
+	l = m + s / 2;
+	generate_color_legend(param,
+			      s,
+			      l,
+			      param->h / 2);
+	return 0;
+}
+
+static int generate_wheel(param_t *param, int m)
+{
+	int t, b, l, r;
+
+	t = m;
+	l = m;
+	r = param->w - m;
+	b = param->h - m;
+
+	bitmap_hsv_circle(&param->bm, l, t, r, b, param->intensity);
+
+	return 0;
+}
+
+static int generate_hsv(param_t *param, int m)
+{
+	int t, b, l, r;
+
+	t = m;
+	l = m;
+	r = param->w - m;
+	b = param->h - m;
+
+	bitmap_hsv_rectangle(&param->bm, l, t, r, b,
+			     (b - t) / 16, param->intensity, 360.0);
+
+	return 0;
+}
+
+static int generate_gradient(param_t *param, int orientation, int m)
+{
+	int t, b, l, r;
+
+	t = m;
+	l = m;
+	r = param->w - m;
+	b = param->h - m;
+
+	generate_test_gradients(param,
+				l, t,
+				r, b,
+				gradient_primary_colors,
+				sizeof(gradient_primary_colors),
+				orientation);
+	return 0;
+}
+
+static param_t param;
+
+int main(int argc, char **argv)
+{
+	int ret, m = 0;
+
+	set_params(&param);
+
+	fprintf(stderr, DEFAULT_SEPARATOR_STRING);
+	if (command_parse(argc, argv, &param))
+		fprintf(stderr, "Using defaults\n");
+
+	update_params(&param);
+
+	if (param.verbose)
+		show_params(&param);
+
+	if (bitmap_create(&param.bm, param.w, param.h,
+			  param.stride, param.rotation, param.o_fourcc)) {
+		fprintf(stderr, "Failed top create a bitmap\n");
+		return 1;
+	}
+
+	bitmap_set_debug(&param.bm, param.debug);
+
+	fprintf(stderr, DEFAULT_SEPARATOR_STRING);
+	fprintf(stderr, "Generating %s pattern w %lu h %lu\n",
+		param.pattern, param.w, param.h);
+
+	generate_borders(&param, &m, "default");
+
+	if (strncmp("colorbar2", param.pattern, 9) == 0)
+		ret = generate_colorbar2(&param, m);
+	else if (strncmp("colorbar", param.pattern, 8) == 0)
+		ret = generate_colorbar(&param, m);
+	else if (strncmp("graybar", param.pattern, 7) == 0)
+		ret = generate_graybar(&param, m);
+	else if (strncmp("fill", param.pattern, 4) == 0)
+		ret = generate_fill(&param, m);
+	else if (strncmp("circle", param.pattern, 6) == 0)
+		ret = generate_circle(&param, m);
+	else if (strncmp("test", param.pattern, 4) == 0)
+		ret = generate_test(&param, m);
+	else if (strncmp("checker", param.pattern, 7) == 0)
+		ret = generate_checkerboard(&param, m);
+	else if (strncmp("gradient", param.pattern, 8) == 0)
+		ret = generate_gradient(&param, HORIZONTAL, m);
+	else if (strncmp("vgradient", param.pattern, 9) == 0)
+		ret = generate_gradient(&param, VERTICAL, m);
+	else if (strncmp("wheel", param.pattern, 5) == 0)
+		ret = generate_wheel(&param, m);
+	else if (strncmp("hsv", param.pattern, 3) == 0)
+		ret = generate_hsv(&param, m);
+	else if (strncmp("font", param.pattern, 4) == 0)
+		ret = generate_font(&param, m);
+	else {
+		fprintf(stderr, "Defaulting to colorbar pattern w %lu h %lu\n",
+			param.w,  param.h);
+		ret = generate_colorbar(&param, m);
+	}
+
+	generate_grid(&param);
+
+	fprintf(stderr, DEFAULT_SEPARATOR_STRING);
+
+	bitmap_write_file(&param.bm, param.out);
+
+	bitmap_destroy(&param.bm);
+	fprintf(stderr, DEFAULT_SEPARATOR_STRING);
+
+	return ret;
+}

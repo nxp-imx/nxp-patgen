@@ -1,0 +1,243 @@
+
+
+
+./patgen.exe  -v -d -a 100 -b -c 0xffffff -f -h 1080 -i 90 -k 2 -o pattern-name -s 1920 -t -w 1920 
+./patgen.exe  -v -d -w 1920 -h 1080 -t -b -f -p wheel -o pattern09 -i 50 -a 50.0 -c 0xf0f0f0 
+
+./patgen.exe  -v -d -a 100 -b -c 0xffffff -f -h 1080 -i 90 -k 2 -o pattern-name -s 1920 -t -w 1920 
+
+-v -d -w 1920 -h 1080 -t -b -f -p wheel -o pattern09 -i 50 -a 50.0 -c 0xf0f0f0 
+
+./patgen.exe   -v -d -w 1920 -h 1080 -p test   -b -t -f -o pattern
+
+
+./patgen.exe   --color 0xffff -p test -k 2 --height 720 --width 1280 
+
+./patgen.exe   --color 0xffff --pattern test --checker_size 2 --height 480  --width 720   --outfile pattern01
+
+./patgen.exe   --color 0xffff --pattern test --checker_size 2 --height 720 --width 1280   --outfile pattern01
+
+./patgen.exe   --color 0xffff --pattern test --checker_size 2 --height 1080 --width 1920   --outfile pattern01
+
+./patgen.exe   --color 0xffff --pattern test --checker_size 2 --height 2160 --width 3840 --outfile pattern01
+
+//_T("RGB Image Files (*.rgb)|*.rgb|YUV Image Files (yuv...)|*.yuv|Binary Files (*.bin)|*.bin|All Files (*.*)|*.*||") /*_T("Image Files (YUV...)|*.YUV|")*/
+//			);
+
+
+
+ ./patgen.exe   --color 0xffff -p test -k 2 -o pattern12 --height 720 --width 1280 
+ ./patgen.exe   --color 0xffff -p test -k 2 -o pattern12 --height 720 --width 1280 
+
+
+./patgen.exe   --color 0xffff -p fill  -k 2 -o fill1 --height 720 --width 1280 
+ ./patgen.exe   --color 0xffff -p checker  -k 2 -o checker1 --height 720 --width 1280 
+ ./patgen.exe   --color 0xffff -p checker  -k 1 -o checker1 --height 720 --width 1280 
+ ./patgen.exe   --color 0xffff -p checker  -k 1 -o checker2 --height 720 --width 1280 
+ ./patgen.exe   --color 0xffff -p checker  -k 4 -o checker3 --height 480 --width 640 
+ ./patgen.exe   --color 0xffff -p checker  -k 1 -o checker3 --height 480 --width 640 
+ ./patgen.exe   --color 0xffff -p checker  -k 1 -o checker4 --height 480 --width 640 
+ ./patgen.exe   --color 0xffff -p checker  -k 1 -o checker5 --height 1080 --width 1920 
+ ./patgen.exe   --color 0xffff -p checker  -k 1 -o checker5 --height 720 --width 1280 
+
+
+
+
+ ./patgen.exe   --color 0xffff -p checker  -k 1 -o checker6
+ ./patgen.exe   --color 0xffff -p checker  -k 1 -o checker6 -u
+ ./patgen.exe   --color 0xffff -p colorbar  -k 1 -o checker6 -u
+ ./patgen.exe   --color 0xffff -p colorbar  -k 1 -o color1 -u
+ ./patgen.exe   --color 0xffff -p colorbar  -k 1 -o color1
+
+ ./patgen.exe   --color 0xffff -p colorbar  -k 1 -o color1
+ ./patgen.exe  -v 0xffff -p test -k 2 -o pattern12
+ ./patgen.exe  -c 0xffff -p test -k 2 -o pattern12
+ ./patgen.exe  -c 0xffff -p test -k 2 -o pattern12 --verbose
+ ./patgen.exe  -c 0xffff -p test -k 2 -o pattern12 --verbose --debug
+ ./patgen.exe  -c 0xffff -p test -k 2 -o pattern12 --verbose --debug 1234
+
+ ./patgen.exe  -c 0xffff -p test -k 2 -o pattern12 --verbose --debug 1234
+ ./patgen.exe  -c 0xffff -p test -k 2 -o pattern12 
+ ./patgen.exe  -c 0xffff -p test -k 2 -o pattern12 --height 720 --width 1280 
+
+
+Breakpoint 2, generate_test_lines (param=0x7fffffffd520, x0=36, y0=380, x1=604, y1=444, colors=0x7fffffffd498) at patgen.c:239
+239		t = y0;
+Breakpoint 1, generate_test_gradients (param=0x7fffffffd520, x0=36, y0=292, x1=604, y1=348, 
+    colors=0x55555575a090 <gradient_primary_colors> "\377\377\377", numcolors=24) at patgen.c:209
+209		b = y1;
+-------------------------------------------------------------------------------
+
+
+./patgen.exe  -v  -d -t -b -f -p strip  -i 50 -m 0 -n 20 -a 50.0 -c 0xffffff 
+-o pattern19
+
+
+
+
+#define YUV_COLOR_LIST_SIZE 7
+u32 yuv_color_list[YUV_COLOR_LIST_SIZE] = {
+	0x8080eb, // white
+	0x9210d2, // yellow
+	0x10a6aa, // cyan
+	0x223691, // green
+	0xdeca6a, // magenta
+	0xf05a51, // red
+	0x6ef029, // blue
+};   /* 0xVVUUYY */
+
+
+
+
+#define SCALEBITS 10
+#define ONE_HALF  (1 << (SCALEBITS - 1))
+#define FIX(x)    ((int) ((x) * (1<<SCALEBITS) + 0.5))
+
+
+#define YUV_TO_RGB1_CCIR(cb1, cr1)\
+{\
+    cb = (cb1) - 128;\
+    cr = (cr1) - 128;\
+    r_add = FIX(1.40200*255.0/224.0) * cr + ONE_HALF;\
+    g_add = - FIX(0.34414*255.0/224.0) * cb - FIX(0.71414*255.0/224.0) * cr + \
+            ONE_HALF;\
+    b_add = FIX(1.77200*255.0/224.0) * cb + ONE_HALF;\
+}
+
+#define YUV_TO_RGB1_CCIR_BT709(cb1, cr1)                      \
+    {                                                         \
+        cb    = (cb1) - 128;                                  \
+        cr    = (cr1) - 128;                                  \
+        r_add = ONE_HALF + FIX(1.5747 * 255.0 / 224.0) * cr;  \
+        g_add = ONE_HALF - FIX(0.1873 * 255.0 / 224.0) * cb - \
+                           FIX(0.4682 * 255.0 / 224.0) * cr;  \
+        b_add = ONE_HALF + FIX(1.8556 * 255.0 / 224.0) * cb;  \
+    }
+
+// To be used for the BT709 variant as well
+#define YUV_TO_RGB2_CCIR(r, g, b, y1)\
+{\
+    y = ((y1) - 16) * FIX(255.0/219.0);\
+    r = cm[(y + r_add) >> SCALEBITS];\
+    g = cm[(y + g_add) >> SCALEBITS];\
+    b = cm[(y + b_add) >> SCALEBITS];\
+}
+
+#define YUV_TO_RGB1(cb1, cr1)\
+{\
+    cb = (cb1) - 128;\
+    cr = (cr1) - 128;\
+    r_add = FIX(1.40200) * cr + ONE_HALF;\
+    g_add = - FIX(0.34414) * cb - FIX(0.71414) * cr + ONE_HALF;\
+    b_add = FIX(1.77200) * cb + ONE_HALF;\
+}
+
+#define YUV_TO_RGB2(r, g, b, y1)\
+{\
+    y = (y1) << SCALEBITS;\
+    r = cm[(y + r_add) >> SCALEBITS];\
+    g = cm[(y + g_add) >> SCALEBITS];\
+    b = cm[(y + b_add) >> SCALEBITS];\
+}
+
+#define Y_CCIR_TO_JPEG(y)\
+ cm[((y) * FIX(255.0/219.0) + (ONE_HALF - 16 * FIX(255.0/219.0))) >> SCALEBITS]
+
+#define Y_JPEG_TO_CCIR(y)\
+ (((y) * FIX(219.0/255.0) + (ONE_HALF + (16 << SCALEBITS))) >> SCALEBITS)
+
+#define C_CCIR_TO_JPEG(y)\
+ cm[(((y) - 128) * FIX(127.0/112.0) + (ONE_HALF + (128 << SCALEBITS))) >> SCALEBITS]
+
+/* NOTE: the clamp is really necessary! */
+static inline int C_JPEG_TO_CCIR(int y) {
+    y = (((y - 128) * FIX(112.0/127.0) + (ONE_HALF + (128 << SCALEBITS))) >> SCALEBITS);
+    if (y < 16)
+        y = 16;
+    return y;
+}
+
+
+#define RGB_TO_Y_CCIR(r, g, b) \
+((FIX(0.29900*219.0/255.0) * (r) + FIX(0.58700*219.0/255.0) * (g) + \
+  FIX(0.11400*219.0/255.0) * (b) + (ONE_HALF + (16 << SCALEBITS))) >> SCALEBITS)
+
+#define RGB_TO_U_CCIR(r1, g1, b1, shift)\
+(((- FIX(0.16874*224.0/255.0) * r1 - FIX(0.33126*224.0/255.0) * g1 +         \
+     FIX(0.50000*224.0/255.0) * b1 + (ONE_HALF << shift) - 1) >> (SCALEBITS + shift)) + 128)
+
+#define RGB_TO_V_CCIR(r1, g1, b1, shift)\
+(((FIX(0.50000*224.0/255.0) * r1 - FIX(0.41869*224.0/255.0) * g1 -           \
+   FIX(0.08131*224.0/255.0) * b1 + (ONE_HALF << shift) - 1) >> (SCALEBITS + shift)) + 128)
+
+#define RGB_TO_Y_JPEG(r, g, b) \
+(FFMIN((FIX(0.29900) * (r) + FIX(0.58700) * (g) + \
+  FIX(0.11400) * (b) + (ONE_HALF)) >> SCALEBITS, 255))
+
+#define RGB_TO_U_JPEG(r1, g1, b1)\
+(((- FIX(0.16874) * r1 - FIX(0.33126) * g1 + \
+     FIX(0.50000) * b1 + (ONE_HALF) - 1) >> (SCALEBITS)) + 128)
+
+#define RGB_TO_V_JPEG(r1, g1, b1)\
+(((FIX(0.50000) * r1 - FIX(0.41869) * g1 - \
+   FIX(0.08131) * b1 + (ONE_HALF) - 1) >> (SCALEBITS)) + 128)
+
+// Conversion macros for 8-bit RGB to YUV
+// Derived from ITU-R BT.709-6 (06/2015) Item 3.5
+// https://www.itu.int/rec/R-REC-BT.709-6-201506-I/en
+
+
+
+#define RGB_TO_Y_CCIR(r, g, b) \
+((FIX(0.29900*219.0/255.0) * (r) + FIX(0.58700*219.0/255.0) * (g) + \
+  FIX(0.11400*219.0/255.0) * (b) + (ONE_HALF + (16 << SCALEBITS))) >> SCALEBITS)
+
+#define RGB_TO_U_CCIR(r1, g1, b1, shift)\
+(((- FIX(0.16874*224.0/255.0) * r1 - FIX(0.33126*224.0/255.0) * g1 +         \
+     FIX(0.50000*224.0/255.0) * b1 + (ONE_HALF << shift) - 1) >> (SCALEBITS + shift)) + 128)
+
+#define RGB_TO_V_CCIR(r1, g1, b1, shift)\
+(((FIX(0.50000*224.0/255.0) * r1 - FIX(0.41869*224.0/255.0) * g1 -           \
+   FIX(0.08131*224.0/255.0) * b1 + (ONE_HALF << shift) - 1) >> (SCALEBITS + shift)) + 128)
+
+#define RGB_TO_Y_JPEG(r, g, b) \
+(FFMIN((FIX(0.29900) * (r) + FIX(0.58700) * (g) + \
+  FIX(0.11400) * (b) + (ONE_HALF)) >> SCALEBITS, 255))
+
+#define RGB_TO_U_JPEG(r1, g1, b1)\
+(((- FIX(0.16874) * r1 - FIX(0.33126) * g1 + \
+     FIX(0.50000) * b1 + (ONE_HALF) - 1) >> (SCALEBITS)) + 128)
+
+#define RGB_TO_V_JPEG(r1, g1, b1)\
+(((FIX(0.50000) * r1 - FIX(0.41869) * g1 - \
+   FIX(0.08131) * b1 + (ONE_HALF) - 1) >> (SCALEBITS)) + 128)
+
+// Conversion macros for 8-bit RGB to YUV
+// Derived from ITU-R BT.709-6 (06/2015) Item 3.5
+// https://www.itu.int/rec/R-REC-BT.709-6-201506-I/en
+
+#define RGB_TO_Y_BT709(r, g, b) \
+((FIX(0.21260*219.0/255.0) * (r) + FIX(0.71520*219.0/255.0) * (g) + \
+  FIX(0.07220*219.0/255.0) * (b) + (ONE_HALF + (16 << SCALEBITS))) >> SCALEBITS)
+
+#define RGB_TO_U_BT709(r1, g1, b1, shift)\
+(((- FIX(0.11457*224.0/255.0) * r1 - FIX(0.38543*224.0/255.0) * g1 +         \
+     FIX(0.50000*224.0/255.0) * b1 + (ONE_HALF << shift) - 1) >> (SCALEBITS + shift)) + 128)
+
+#define RGB_TO_V_BT709(r1, g1, b1, shift)\
+(((FIX(0.50000*224.0/255.0) * r1 - FIX(0.45415*224.0/255.0) * g1 -           \
+   FIX(0.04585*224.0/255.0) * b1 + (ONE_HALF << shift) - 1) >> (SCALEBITS + shift)) + 128)
+
+#define RGB_TO_Y_BT709_FULL(r, g, b) \
+(FFMIN((FIX(0.21260) * (r) + FIX(0.71520) * (g) + \
+  FIX(0.07220) * (b) + (ONE_HALF)) >> SCALEBITS, 255))
+
+#define RGB_TO_U_BT709_FULL(r1, g1, b1)\
+(((- FIX(0.11457) * r1 - FIX(0.38543) * g1 + \
+     FIX(0.50000) * b1 + (ONE_HALF) - 1) >> (SCALEBITS)) + 128)
+
+#define RGB_TO_V_BT709_FULL(r1, g1, b1)\
+(((FIX(0.50000) * r1 - FIX(0.45415) * g1 - \
+   FIX(0.04585) * b1 + (ONE_HALF) - 1) >> (SCALEBITS)) + 128)
+
+
