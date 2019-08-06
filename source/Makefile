@@ -72,7 +72,7 @@ clean:
 
 test: all
 	mkdir -p ../patgen_test
-	time ./test.sh ../patgen_test
+	time ../scripts/test.sh ../patgen_test
 
 clean-all: clean
 	rm -fvr *.yuv *.rgb *.bmp ../patgen_test

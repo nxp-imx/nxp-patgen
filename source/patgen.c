@@ -531,7 +531,7 @@ static void show_params(param_t *p)
 	fprintf(stderr, "format:                         %s\n", p->outformat);
 }
 
-static int get_border_size(param_t *param)
+static int get_margin_size(param_t *param)
 {
 	int s = MIN(param->w, param->h);
 	if (s < 1080)
@@ -560,7 +560,7 @@ static int generate_borders(param_t *param, int *margin, char *title)
 		return 0;
 	}
 
-	m = get_border_size(param);
+	m = get_margin_size(param);
 	*margin = m;
 
 	m = *margin;
@@ -639,9 +639,38 @@ static int generate_borders(param_t *param, int *margin, char *title)
 	return 0;
 }
 
+int generate_test_lines(param_t *param,
+			int x0, int y0,
+			int x1, int y1,
+			uint32_t *colors) /* size is two element */
+{
+	int i, t, b, l, r, w;
+	const int num_blocks = 8;
+	int loop_data[8][2] =  {
+		{ 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 0 },
+		{ 4, 1 }, { 3, 1 }, { 2, 1 }, { 1, 1 },
+	};
+	fprintf(stderr, "Generating test lines\n");
+
+	t = y0;
+	b = y1;
+	w = (x1 - x0) / 8;
+	l = x0;
+	r = x0 + w;
+
+	for (i =  0; i < num_blocks; i++,  l += w, r += w) {
+		bitmap_lines(&param->bm, l, t, r, b, colors,
+			     loop_data[i][0],
+			     loop_data[i][1]);
+	}
+	return 0;
+}
+
 static int generate_test_circles(param_t *param, int x, int y, int r)
 {
 	uint32_t gw[2];
+
+	fprintf(stderr, "Generating test circles\n");
 
 	bitmap_get_color(&param->bm, "dark_gray", &gw[0]);
 	bitmap_get_color(&param->bm, "white", &gw[1]);
@@ -663,6 +692,8 @@ static int generate_test_center(param_t *param,
 	char text[64];
 	float ftemp;
 	uint32_t bw[2];
+
+	fprintf(stderr, "Generating test center\n");
 
 	t = y0;
 	b = y1;
@@ -900,8 +931,8 @@ static int generate_checkerboard(param_t *param, int m)
 
 static int generate_color_legend(param_t *param,
 				 int s,
-				 uint32_t x0,
-				 uint32_t y0)
+				 int x0,
+				 int y0)
 {
 	uint32_t colors[7];
 	char text[] = "RGBCYM";
@@ -947,11 +978,12 @@ static int generate_font(param_t *param, int m)
 	int i, x, y, s;
 	char text[80];
 	const int sizes[] = { 240, 480, 720, 1080, 2160 };
-	const int margin_sizes[] = { 16, 32, 64 }; 
+	const int margin_sizes[] = { 16, 32, 64 };
 
+	fprintf(stderr, "Generating font test\n");
 	generate_fill(param, m);
 	if (m == 0) {
-		m = get_border_size(param);
+		m = get_margin_size(param);
 	}
 
 	y = param->h * 3 / 4;
@@ -968,7 +1000,7 @@ static int generate_font(param_t *param, int m)
 
 	x = param->w / 8 + m;
 	y = param->h / 16 + m;
-	bitmap_get_color(&param->bm, "dark_gray", &color);
+	bitmap_get_color(&param->bm, "black", &color);
 
 	for (i = 0; i < sizeof(margin_sizes) /
 	     sizeof(margin_sizes[0]); i++) {
@@ -986,7 +1018,7 @@ static int generate_font(param_t *param, int m)
 
 	x = param->w / 2;
 	y = param->h / 8 + m * 2;
-	bitmap_get_color(&param->bm, "dark_gray", &color);
+	bitmap_get_color(&param->bm, "black", &color);
 
 	for (i = 0; i < sizeof(sizes) /
 	     sizeof(sizes[0]); i++) {
@@ -1054,9 +1086,9 @@ static int generate_grid(param_t *param)
 }
 
 static int generate_test_gradients(param_t *param,
-				   uint32_t x0, uint32_t y0,
-				   uint32_t x1, uint32_t y1,
-				   uint8_t *colors, int numcolors,
+				   int x0, int y0,
+				   int x1, int y1,
+				   int *colors, int numcolors,
 				   int orientation)
 {
 	int i, t, b, l, r, s1, s2;
@@ -1098,7 +1130,8 @@ static int generate_test_gradients(param_t *param,
 	return 0;
 }
 
-static uint8_t gradient_primary_colors[] =
+#define NUM_GRADIENT_COLORS (4*6)
+static int gradient_primary_colors[NUM_GRADIENT_COLORS] =
 {
 	255, 255, 255, 0, 0, 0,
 	0, 0, 255, 0, 0, 0,
@@ -1106,12 +1139,12 @@ static uint8_t gradient_primary_colors[] =
 	255, 0, 0, 0, 0, 0,
 };
 
-static uint8_t gradient_secondary_colors[] =
+static int gradient_secondary_colors[NUM_GRADIENT_COLORS] =
 {
 	0, 0, 0, 255, 255, 255,
 	0, 0, 0, 0, 255, 255,
 	0, 0, 0, 255, 255, 0,
-	0, 0, 0, 255, 0, 255,
+	0, 0, 0, 255, 0, 255, 
 };
 
 static int generate_test(param_t *param, int m)
@@ -1158,7 +1191,7 @@ static int generate_test(param_t *param, int m)
 	r = param->w - (m + sep);
 	vert_top = t;
 
-	bitmap_test_lines(&param->bm, l, t, r, b, &colors[bw]);
+	generate_test_lines(param, l, t, r, b, &colors[bw]);
 
 	t = param->h / 2;
 	l = param->w / 2;
@@ -1186,13 +1219,13 @@ static int generate_test(param_t *param, int m)
 
 	generate_test_gradients(param, l, t, r, b,
 				gradient_primary_colors,
-				sizeof(gradient_primary_colors), HORIZONTAL);
+				NUM_GRADIENT_COLORS, HORIZONTAL);
 
 	t = cb_bot + sep;
 	b = center_top - sep;
 	generate_test_gradients(param, l, t, r, b,
 				gradient_secondary_colors,
-				sizeof(gradient_secondary_colors), HORIZONTAL);
+				NUM_GRADIENT_COLORS, HORIZONTAL);
 
 	s =  round((double)(MIN(param->w, param->h) * 0.08));
 	l = m + s / 2;
@@ -1245,7 +1278,7 @@ static int generate_gradient(param_t *param, int orientation, int m)
 				l, t,
 				r, b,
 				gradient_primary_colors,
-				sizeof(gradient_primary_colors),
+				NUM_GRADIENT_COLORS,
 				orientation);
 	return 0;
 }

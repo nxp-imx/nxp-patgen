@@ -15,6 +15,7 @@
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
+#include <assert.h>
 #include <sys/param.h>
 
 #include <ft2build.h>
@@ -140,6 +141,7 @@ static uint32_t bitmap_hsv_to_rgba(bitmap_t *bm, double h, double s, double v)
 	return color;
 }
 
+#if 0
 static uint32_t bitmap_y8_to_rgba(uint32_t color, uint8_t y)
 {
 	double i = y / 255.0;
@@ -152,6 +154,7 @@ static uint32_t bitmap_y8_to_rgba(uint32_t color, uint8_t y)
 
 	return BGRA_PIXEL(r, g, b, a);
 }
+#endif
 
 static uint16_t bitmap_bgra_to_bgr565(uint32_t pixel)
 {
@@ -329,6 +332,12 @@ void bitmap_dump(bitmap_t *bm)
 
 int bitmap_copy_line(bitmap_t *bm, int y, uint32_t *line)
 {
+	PRINTD5(bm->debug, "%s(): y %d\n", __func__, y);
+	if (y >= bm->h) {
+		fprintf(stderr, "%s(): line out of range y %d\n",
+			__func__, y);
+		abort();
+	}
 	memcpy(&bm->buffer[y * bm->stride], line, bm->w * bm->bpp);
 	return 0;
 }
@@ -336,13 +345,18 @@ int bitmap_copy_line(bitmap_t *bm, int y, uint32_t *line)
 int bitmap_copy_line_segment(bitmap_t *bm, int x0, int y0,
 			     int size, uint32_t *line)
 {
+	PRINTD5(bm->debug, "%s(): x0 %d y0 %d\n", __func__, x0, y0);
+	if ((x0 < 0) || (y0 < 0) || (y0 >= bm->h) || ((x0 + size) > bm->w)) {
+		fprintf(stderr, "%s(): line out of range x0 %d y0 %d size %d\n",
+			__func__, x0, y0, size);
+		abort();
+	}
 	memcpy(&bm->buffer[y0 * bm->stride + x0], line, size * bm->bpp);
 	return 0;
 }
 
 int bitmap_draw_pixel(bitmap_t *bm, int x, int y, uint32_t v)
 {
-
 	PRINTD5(bm->debug, "%s(): x0 %d y0 %d v %u\n", __func__, x, y, v);
 	if ((y >= bm->h) || (x >= bm->w) || (y < 0) || (x < 0)) {
 		fprintf(stderr, "%s(): pixel out of range x %d y %d\n",
@@ -350,6 +364,33 @@ int bitmap_draw_pixel(bitmap_t *bm, int x, int y, uint32_t v)
 		abort();
 	}
 	bm->buffer[y * bm->stride + x] = v;
+	return 0;
+}
+
+int bitmap_blend_pixel(bitmap_t *bm, int x, int y, uint32_t v, int alpha)
+{
+	uint8_t r, g, b, local;
+	uint32_t dest = bm->buffer[y * bm->stride + x];
+
+	double a = (double)(alpha & 0xff) / (double)MAX_RGBA;
+
+	PRINTD4(bm->debug, "%s(): x0 %d y0 %d v 0x%x a %f\n", __func__, x, y, v, a * 100);
+	if ((y >= bm->h) || (x >= bm->w) || (y < 0) || (x < 0)) {
+		fprintf(stderr, "%s(): pixel out of range x %d y %d\n",
+			__func__, x, y);
+		abort();
+	}
+
+	r = round(((double)BGRA_RED(v) * a) +
+		  ((double)BGRA_RED(dest) * (1.0 - a)));
+	g = round(((double)BGRA_GREEN(v) * a) +
+		  ((double)BGRA_GREEN(dest) * (1.0 - a)));
+	b = round(((double)BGRA_BLUE(v) * a) +
+		  ((double)BGRA_BLUE(dest) * (1.0 - a)));
+
+	local = BGRA_ALPHA(dest); /* don't change the alpha */
+
+	bm->buffer[y * bm->stride + x] = BGRA_PIXEL(r, g, b, local);
 	return 0;
 }
 
@@ -497,7 +538,7 @@ static int bitmap_rotate_buffer(bitmap_t *bm)
 			} else {
 				/* default is rotation 0 degrees*/
 				i = (y * w) + x;
-				j = (y * w) + x; 
+				j = (y * w) + x;
 			}
 
 			temp_buffer[i] = bm->buffer[j];
@@ -747,35 +788,6 @@ int bitmap_lines(bitmap_t *bm,
 	return 0;
 }
 
-int bitmap_test_lines(bitmap_t *bm,
-		      int x0, int y0,
-		      int x1, int y1,
-		      uint32_t *colors) /* size is two element */
-{
-	int i, t, b, l, r, w;
-	const int num_blocks = 8;
-	int loop_data[8][2] =  {
-		{ 1, 0 }, { 2, 0 }, { 3, 0 }, { 4, 0 },
-		{ 4, 1 }, { 3, 1 }, { 2, 1 }, { 1, 1 },
-	};
-
-	PRINTD2(bm->debug, "%s(): x0 %d y0 %d x1 %d y1 %d colors 0x%x 0x%x\n",
-		__func__, x0, y0, x1, y1, colors[0], colors[1]);
-
-	t = y0;
-	b = y1;
-	w = (x1 - x0) / 8;
-	l = x0;
-	r = x0 + w;
-
-	for (i =  0; i < num_blocks; i++,  l += w, r += w) {
-		bitmap_lines(bm, l, t, r, b, colors,
-			     loop_data[i][0],
-			     loop_data[i][1]);
-	}
-	return 0;
-}
-
 int bitmap_gradient(bitmap_t *bm,
 		    int x0, int y0,
 		    int x1, int y1,
@@ -888,16 +900,16 @@ int bitmap_hsv_circle(bitmap_t *bm,
 
 			angle += DEG2RAD(90.0);
 			deg = adjust_angle(RAD2DEG(-angle);
-					   radius = sqrt(pow(opp, 2.0) +
-							 pow(adj, 2.0));
+			radius = sqrt(pow(opp, 2.0) +
+				      pow(adj, 2.0));
 
-					   if (radius <= size) {
+			if (radius <= size) {
 				c = bitmap_hsv_to_rgba(bm, deg,
 						       radius / size,
 						       val / 100.0);
 				PRINTD5(bm->debug,
-				        "x %4d y %4d h %f s %f v 0x%08x\n",
-				        x, y, RAD2DEG(angle), radius / size, c);
+					"x %4d y %4d h %f s %f v 0x%08x\n",
+					x, y, deg, radius / size, c);
 
 				c = bitmap_set_alpha(bm, c, bm->alpha);
 
@@ -1034,7 +1046,7 @@ int bitmap_corners(bitmap_t *bm, int margin)
 }
 
 /* origin is the upper left corner */
-static uint32_t image[HEIGHT][WIDTH];
+static uint8_t image[HEIGHT][WIDTH];
 
 /* Replace this function with something useful. */
 static void draw_bitmap(bitmap_t *bm,
@@ -1055,11 +1067,8 @@ static void draw_bitmap(bitmap_t *bm,
 			if (i < 0      || j < 0       ||
 			    i >= WIDTH || j >= HEIGHT)
 				continue;
-			//image[j][i] |= bitmap->buffer[q * bitmap->width + p];
-			image[j][i] |=
-				bitmap_y8_to_rgba(color,
-						  bitmap->buffer
-						  [q * bitmap->width + p]);
+			image[j][i] |= bitmap->buffer[q * bitmap->width + p];
+
 			PRINTD5(bm->debug,
 				"x %d y %d image 0x%08x\n",
 				i, j, image[j][i]);
@@ -1091,7 +1100,8 @@ static int bitmap_copy_font(bitmap_t *bm,
 	for (y = 0; y < HEIGHT; y++) {
 		for (x = 0; x < WIDTH; x++) {
 			if (image[y][x] != 0) {
-				bitmap_draw_pixel(bm, x + x0, y + y0, color);
+				bitmap_blend_pixel(bm, x + x0, y + y0,
+						   color, image[y][x]);
 				PRINTD5(bm->debug,
 					"x %d y %d image 0x%08x\n", x, y,
 					image[y][x]);
@@ -1122,7 +1132,7 @@ int bitmap_render_font(bitmap_t *bm,
 	int           n, num_chars;
 
 	num_chars     = strlen(text);
-	angle         = (0.0 / 360) * 3.14159 * 2;
+	angle         = DEG2RAD(0.0);
 	target_height = HEIGHT;
 
 	memset(image, 0, sizeof(image));

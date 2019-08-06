@@ -2,8 +2,8 @@ patgen Description
 
 patgen is a simple pattern generator designed to build and run on Linux 
 platforms and embedded Linux platform. Requires stadard c library. To run the 
-default font needs to be a symbolically linked to the run directory. GPL fonts
-gnu-unifontand are included as defaults. "DejaVuSansMono.ttf" has also been
+default font needs to be a symbolically linked to the run directory. GPL font,
+K1FS-1.2, is included as the default. "DejaVuSansMono.ttf" has also been
 tested. The DejaVu font can be found in /usr/share/fonts/truetype on yocto
 systems or in /usr/share/fonts/truetype/dejavu on ubuntu systems.
 

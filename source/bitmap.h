@@ -160,10 +160,6 @@ int bitmap_lines(bitmap_t *bm,
 		 uint32_t *colors, /* size is two element */
 		 int size,
 		 int orientation);
-int bitmap_test_lines(bitmap_t *bm,
-		      int x0, int y0,
-		      int x1, int y1,
-		      uint32_t *colors); /* size is two element */
 int bitmap_gradient(bitmap_t *bm,
 		    int x0, int y0,
 		    int x1, int y1,
