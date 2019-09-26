@@ -1,7 +1,7 @@
 #!/bin/sh
 
 DIR=$1
-TEST=test1
+TEST=test01
 RES=1280x720
 FMT=yuv444p
 INTENSITY=90.0
@@ -17,9 +17,9 @@ time ./patgen.exe -v -border -header -footer -pattern hsv        -vsize $RES -i 
 time ./patgen.exe -v -border -header -footer -pattern test       -vsize $RES -i $INTENSITY -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -border -header -footer -pattern wheel      -vsize $RES -i $INTENSITY -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -border -header -footer -pattern font       -vsize $RES -i $INTENSITY -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -border -header -footer -pattern colorcheck -vsize $RES -i $INTENSITY -pix_fmt $FMT -outname "$DIR/$TEST"
 
-
-TEST=test2
+TEST=test02
 RES=1920x1080
 FMT=rgb565le
 
@@ -34,8 +34,9 @@ time ./patgen.exe -v -border -header -footer -pattern hsv        -vsize $RES -pi
 time ./patgen.exe -v -border -header -footer -pattern test       -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -border -header -footer -pattern wheel      -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -border -header -footer -pattern font       -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -border -header -footer -pattern colorcheck -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
-TEST=test3
+TEST=test03
 RES=720x480
 FMT=bgra
 
@@ -56,9 +57,9 @@ time ./patgen.exe -v -border -header -footer -pattern hsv        -alpha $ALPHA -
 time ./patgen.exe -v -border -header -footer -pattern test       -alpha $ALPHA -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -border -header -footer -pattern wheel      -alpha $ALPHA -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -border -header -footer -pattern font       -alpha $ALPHA -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -border -header -footer -pattern colorcheck -alpha $ALPHA -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
-
-TEST=test4
+TEST=test04
 RES=3840x2160
 FMT=yuv420p
 
@@ -80,8 +81,9 @@ time ./patgen.exe -v -border -footer -pattern hsv       -c $COLOR -size $CHECKER
 time ./patgen.exe -v -border -footer -pattern test      -c $COLOR -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -border -footer -pattern wheel     -c $COLOR -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -border -footer -pattern font      -c $COLOR -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -border -footer -pattern colorcheck -c $COLOR -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
-TEST=test5
+TEST=test05
 RES=640x480
 FMT=nv12
 
@@ -102,8 +104,9 @@ time ./patgen.exe -v -border -header -pattern hsv        -size $CHECKER -min_i $
 time ./patgen.exe -v -border -header -pattern test       -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -border -header -pattern wheel      -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -border -header -pattern font       -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -border -header -pattern colorcheck -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
-TEST=test6
+TEST=test06
 RES=3840x2160
 FMT=bgra
 
@@ -124,8 +127,9 @@ time ./patgen.exe -v -pattern hsv        -rot 180 -size $CHECKER -min_i $MIN -ma
 time ./patgen.exe -v -pattern test       -rot 180 -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern wheel      -rot 180 -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern font       -rot 180 -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorcheck       -rot 180 -size $CHECKER -min_i $MIN -max_i $MAX -i $INTENSITY -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
-TEST=test7
+TEST=test07
 RES=1920x1080
 FMT=yuv444p
 FMT=bgra
@@ -141,8 +145,9 @@ time ./patgen.exe -v -pattern hsv        -border -header -footer -rot 90 -vsize 
 time ./patgen.exe -v -pattern test       -border -header -footer -rot 90 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern wheel      -border -header -footer -rot 90 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern font       -border -header -footer -rot 90 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorcheck -border -header -footer -rot 90 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
-TEST=test8
+TEST=test08
 RES=1920x1080
 FMT=yuv444p
 FMT=bgra
@@ -158,9 +163,9 @@ time ./patgen.exe -v -pattern hsv        -border -header -footer -rot 270 -vsize
 time ./patgen.exe -v -pattern test       -border -header -footer -rot 270 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern wheel      -border -header -footer -rot 270 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern font       -border -header -footer -rot 270 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorcheck -border -header -footer -rot 270 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
-
-TEST=test9
+TEST=test09
 RES=800x480
 FMT=bgra
 
@@ -175,6 +180,25 @@ time ./patgen.exe -v -pattern hsv        -border -header -footer -vsize $RES -pi
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern wheel      -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorcheck -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+
+TEST=test10
+RES=1920x1080
+FMT=bgra
+
+time ./patgen.exe -v -pattern circle     -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorbar   -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorbar2  -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern fill       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern graybar    -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern gradient   -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern vgradient  -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern hsv        -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern wheel      -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorcheck -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+
 
 CONTAINER_FMT=bmp
 
