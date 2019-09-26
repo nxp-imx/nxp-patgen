@@ -33,6 +33,7 @@ usage: ./patgen.exe
 		circle		Draw circle with a background fill
 		colorbar	Vertical color bars
 		colorbar2	Alternate colors bars
+		colorcheck	24 color checker
 		fill		Fill the pattern with -color at -intensity).
 		font		Pattern with some sample text from the fonts in use.
 		graybar		11 shaded bars, the default is white bars from
@@ -100,8 +101,4 @@ usage: ./patgen.exe
 	-stride [stride (pixels)] Sets the stride if it is larger the the width
 
 	-fb [frame buffer device] Name of the framebuffer device file
-
-
-
-
 

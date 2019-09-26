@@ -90,6 +90,7 @@ static const char help[] =
 	"\t\tcircle\t\tDraw circle with a background fill\n"
 	"\t\tcolorbar\tVertical color bars\n"
 	"\t\tcolorbar2\tAlternate colors bars\n"
+	"\t\tcolorcheck\t24 color checker\n"
 	"\t\tfill\t\tFill the pattern with -color at -intensity).\n"
 	"\t\tfont\t\tPattern with some sample text from the fonts in use.\n"
 	"\t\tgraybar\t\t11 shaded bars, the default is white bars from\n"
@@ -888,6 +889,75 @@ static int generate_fill(param_t *param, int m)
 	return 0;
 }
 
+/* reference https://en.wikipedia.org/wiki/ColorChecker */
+#define COLOR_CHECKER_ROW 4
+#define COLOR_CHECKER_COLUMN 6
+const uint32_t colorchecker[COLOR_CHECKER_ROW * COLOR_CHECKER_COLUMN] = {
+	0x00735244, /* Dark skin     */
+	0x00c29682, /* Light skin    */
+	0x00627a9d, /* Blue sky      */
+	0x00576c43, /* Foliage       */
+	0x008580b1, /* Blue flower   */
+	0x0067bdaa, /* Bluish green  */
+
+	0x00d67e2c, /* Orange        */
+	0x00505ba6, /* Purplish blue */
+	0x00c15a63, /* Moderate red  */
+	0x005e3c6c, /* Purple        */
+	0x009dbc40, /* Yellow green  */
+	0x00e0a32e, /* Orange yellow */
+
+	0x00383d96, /* Blue          */
+	0x00469449, /* Green         */
+	0x00af363c, /* Red           */
+	0x00e7c71f, /* Yellow        */
+	0x00bb5695, /* Magenta       */
+	0x000885a1, /* Cyan          */
+
+	0x00f3f3f2, /* White         */
+	0x00c8c8c8, /* Neutral       */
+	0x00a0a0a0, /* Neutral       */
+	0x007a7a79, /* Neutral       */
+	0x00555555, /* Neutral       */
+	0x00343434, /* Black         */
+};
+
+static int generate_colorcheck(param_t *param, int m)
+{
+	int l, b, s, t, w, h, x, y;
+	uint32_t c;
+	/* determine boarder and separator */
+	b = MIN(param->w, param->h) / 16;
+	s = b / 4;
+
+	/* start position */
+	l = m + b;
+	t = m + b;
+
+	/* calculate the width and heigth of each rectangle */
+	w = (param->w - (2 * m) - (2 * b) - (5 * s)) / 6;
+	h = (param->h - (2 * m) - (2 * b) - (3 * s)) / 4;
+
+	/* fill whole bitmap surface */
+	bitmap_fill_rectangle(&param->bm,
+			      m, m,
+			      param->w - m, param->h - m,
+			      0x0);
+
+	for (y = 0; y < COLOR_CHECKER_ROW; y++) {
+		for (x = 0; x < COLOR_CHECKER_COLUMN; x++) {
+			c = colorchecker[(y * COLOR_CHECKER_COLUMN) + x];
+			bitmap_fill_rectangle(&param->bm,
+					      l + (x * (w + s)),
+					      t + (y * (h + s)),
+					      l + (x * (w + s)) + w,
+					      t + (y * (h + s)) + h,
+					      c);
+		}
+	}
+	return 0;
+}
+
 static int generate_circle(param_t *param, int m)
 {
 	int r, h, w, l, t, b, radius;
@@ -1318,6 +1388,8 @@ int main(int argc, char **argv)
 		ret = generate_colorbar2(&param, m);
 	else if (strncmp("colorbar", param.pattern, 8) == 0)
 		ret = generate_colorbar(&param, m);
+	else if (strncmp("colorcheck", param.pattern, 10) == 0)
+		ret = generate_colorcheck(&param, m);
 	else if (strncmp("graybar", param.pattern, 7) == 0)
 		ret = generate_graybar(&param, m);
 	else if (strncmp("fill", param.pattern, 4) == 0)
