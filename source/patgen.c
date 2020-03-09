@@ -548,7 +548,7 @@ static int generate_borders(param_t *param, int *margin, char *title)
 	int t, b, l, m, r;
 	uint32_t color;
 	uint32_t bw[2];
-	char text[64];
+	char text[96];
 
 	fprintf(stderr, "Generating borders\n");
 
