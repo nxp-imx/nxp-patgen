@@ -199,6 +199,23 @@ time ./patgen.exe -v -pattern wheel      -border -header -footer -vsize $RES -pi
 time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern colorcheck -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
+TEST=test11
+RES=860x600
+FMT=bgra
+
+time ./patgen.exe -v -pattern circle     -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorbar   -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorbar2  -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern fill       -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern graybar    -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern gradient   -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern vgradient  -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern hsv        -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern test       -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern wheel      -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern font       -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorcheck -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+
 
 CONTAINER_FMT=bmp
 
