@@ -1,16 +1,16 @@
 patgen Description
 
-patgen is a simple pattern generator designed to build and run on Linux 
-platforms and embedded Linux platform. Requires stadard c library. To run the 
+patgen is a simple pattern generator designed to build and run on Linux
+platforms and embedded Linux platform. Requires stadard c library. To run the
 default font needs to be a symbolically linked to the run directory. GPL font,
 K1FS-1.2, is included as the default. "DejaVuSansMono.ttf" has also been
 tested. The DejaVu font can be found in /usr/share/fonts/truetype on yocto
 systems or in /usr/share/fonts/truetype/dejavu on ubuntu systems.
 
-patgen is not intented to replace other GPU and VPU media tests. It is inteded
-to provide tools to isolate an debug display issues.  
+patgen is not intented to replace other GPU and VPU media tests. It is intended
+to provide tools to isolate and debug display and camera issues.
 
-patgen.exe  [-v] [-d] [-h] [-a alpha percent ] [-border] [-header] 
+patgen.exe  [-v] [-d] [-h] [-a alpha percent ] [-border] [-header]
 [-c xRGB pixel value 0xrrggbb] [-vs -vsize widthxheight pixels]
 [-i intensity percent] [-size checker size pixels]
 [-steps number of graybar steps] [-pix_fmt pixel format]
@@ -31,21 +31,31 @@ usage: ./patgen.exe
 		checker		creates a checkerboard pattern using -size
 
 		circle		Draw circle with a background fill
+
 		colorbar	Vertical color bars
+
 		colorbar2	Alternate colors bars
+
 		colorcheck	24 color checker
+
 		fill		Fill the pattern with -color at -intensity).
-		font		Pattern with some sample text from the fonts in use.
+
+		font		Pattern with some sample text from the fonts in
+				use.
+
 		graybar		11 shaded bars, the default is white bars from
-				100% to 0%. The -color, -steps, -min_i, and max_i
-				parameters can be used with this pattern.
+				100% to 0%. The -color, -steps, -min_i, and
+				max_i parameters can be used with this pattern.
+
 		gradient	Creates four horizontal gradient bars red,
 				green , blue and white.
 
 		vgradient	Creates four vertical gradient bars red, green,
 				blue, and white.
+
 		hsv		Creates an HSV color transtion gradient. The
 				-i sets the V (value) for HSV.
+
 		test		Creates a testcard like pattern.
 
 		wheel	Creates an HSV color wheel. The -i sets the V
@@ -71,11 +81,13 @@ usage: ./patgen.exe
 		Sets the color intensity for the colorbar, fill and
 		hsv patterns. Default is 100.0%
 
-	-min_i [minimum intensity (%)] 
-		Sets the minimum intensity for the graybar pattern. Default is 0.0%
+	-min_i [minimum intensity (%)]
+		Sets the minimum intensity for the graybar pattern. Default is
+		0.0%
 
 	-max_i[maximum intensity (%)]
-		Sets the maximum intensity for the graybar pattern. Default is 100.0%
+		Sets the maximum intensity for the graybar pattern. Default is
+		100.0%
 
 	-steps [steps]
 		Sets the number steps in the graybar pattern
@@ -86,7 +98,7 @@ usage: ./patgen.exe
 	-o -outfile [prefix string]
 		Adds a prefix to the default pattern name
 
-	-pix_fmt
+	-pix_fmt [pixel format]
 		Supported formats are:
 			bgra     32 bits per pixel RGB
 			rgb565le 16 bits per pixel RGB
@@ -94,11 +106,15 @@ usage: ./patgen.exe
 			yuv420p  12 bits per pixel YUV (3 planes Y, U and V)
 			nv12     12 bits per pixel YUV (2 planes Y and UV)
 
-	-vs -vsize [HxW (pixelsxpixels] Sets the width and hight of the output
+	-vs -vsize [HxW (lines x pixels)]
+		Sets the width and hight of the output
 
-	-r -rotation [rotation (degrees)] rotates the final image to 0, 90, 180, or 360
+	-r -rotation [rotation (degrees)]
+		Rotates the final image to 0, 90, 180, or 360
 
-	-stride [stride (pixels)] Sets the stride if it is larger the the width
+	-stride [stride (pixels)]
+		Sets the stride if it is larger the the width
 
-	-fb [frame buffer device] Name of the framebuffer device file
+	-fb [frame buffer device]
+		Name of the framebuffer device file
 
