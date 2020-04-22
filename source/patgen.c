@@ -701,7 +701,7 @@ static int generate_test_center(param_t *param,
 	l = x0;
 	r = x1;
 
-	ftemp = 0.02 * param->w;
+	ftemp = 0.02 * MIN(param->w,param->h);
 	m = round(ftemp);
 
 	bitmap_get_color(&param->bm, "black", &bw[0]);
