@@ -472,7 +472,16 @@ static void update_params(param_t *p)
 	if (strncmp("rgb565le", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_BGR565;
 	} else if (strncmp("yuv444p", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUV444P;
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("yuva444", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUVA444;
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("yuv444", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_YUV444;
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("yuv422", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUV422;
 		strcpy(p->extension, "yuv");
 	} else if (strncmp("nv12", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_NV12;
@@ -490,6 +499,9 @@ static void update_params(param_t *p)
 			"\trgb565le\n"
 			"\tyuv420p\n"
 			"\tyuv444p\n"
+			"\tyuv444\n"
+			"\tyuv444\n"
+			"\tyuv422\n"
 			"\tnv12\n\n"
 		       );
 		exit(0);

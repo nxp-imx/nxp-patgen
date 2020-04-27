@@ -100,9 +100,12 @@ usage: ./patgen.exe
 
 	-pix_fmt [pixel format]
 		Supported formats are:
-			bgra     32 bits per pixel RGB
+			bgra     32 bits per pixel RGBA
 			rgb565le 16 bits per pixel RGB
 			yuv444p  24 bits per pixel YUV (3 planes Y, U and V)
+			yuv444   32 bits per pixel YUV (1 planes Y, U and V, YUVx)
+			yuva444  32 bits per pixel YUV (1 planes Y, U and V, YUVA)
+			yuv422   16 bits per pixel YUV (1 planes Y, U and V, YUYV)
 			yuv420p  12 bits per pixel YUV (3 planes Y, U and V)
 			nv12     12 bits per pixel YUV (2 planes Y and UV)
 

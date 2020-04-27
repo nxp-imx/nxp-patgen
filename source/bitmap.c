@@ -444,9 +444,12 @@ int bitmap_fill_rectangle(bitmap_t *bm,
 int bitmap_is_yuv(unsigned int f)
 {
 	switch (f) {
-	case FORMAT_YUV444:
+	case FORMAT_YUV444P:
 	case FORMAT_YUV420:
 	case FORMAT_NV12:
+	case FORMAT_YUV444:
+	case FORMAT_YUVA444:
+	case FORMAT_YUV422:
 		return TRUE;
 	default:
 		return FALSE;
@@ -457,6 +460,9 @@ static int get_vertical_sub(unsigned int f)
 {
 	switch (f) {
 	case FORMAT_YUV444:
+	case FORMAT_YUVA444:
+	case FORMAT_YUV422:
+	case FORMAT_YUV444P:
 		return 1;
 	case FORMAT_YUV420:
 	case FORMAT_NV12:
@@ -470,9 +476,12 @@ static int get_horizontal_sub(unsigned int f)
 {
 	switch (f) {
 	case FORMAT_YUV444:
+	case FORMAT_YUVA444:
+	case FORMAT_YUV444P:
 		return 1;
 	case FORMAT_YUV420:
 	case FORMAT_NV12:
+	case FORMAT_YUV422:
 		return 2;
 	default:
 		return 1;
@@ -482,11 +491,15 @@ static int get_horizontal_sub(unsigned int f)
 static int get_planes(unsigned int f)
 {
 	switch (f) {
-	case FORMAT_YUV444:
+	case FORMAT_YUV444P:
 	case FORMAT_YUV420:
 		return 3;
 	case FORMAT_NV12:
 		return 2;
+	case FORMAT_YUV444:
+	case FORMAT_YUVA444:
+	case FORMAT_YUV422:
+		return 1;
 	default:
 		return 1;
 	}
@@ -495,10 +508,10 @@ static int get_planes(unsigned int f)
 static int is_yuv_subsampled(unsigned int f)
 {
 	switch (f) {
+	case FORMAT_YUV422:
 	case FORMAT_YUV420:
 	case FORMAT_NV12:
 		return TRUE;
-
 	default:
 		return FALSE;
 	}
@@ -573,6 +586,41 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 		}
 		bm->bpp = 2;
 		bm->planes = 1;
+	} else if (bm->format == FORMAT_YUV422) {
+		uint32_t *buffer_out =  (uint32_t *)bm->buffer;
+		fprintf(stderr,
+			"Converting to output DRM_FORMAT_BGR565 (rgb565le)\n");
+		for (i = 0;  i < s; i += 2) {
+			uint8_t y, u, v, a;
+			uint8_t y0, u0, y1, v0;
+
+			bitmap_bgra_to_yuva(bm->buffer[i], &y, &u, &v, &a);
+			y0 = y;
+			u0 = u;
+			v0 = v;
+
+			/* todo: handle odd widths */
+			bitmap_bgra_to_yuva(bm->buffer[i+1], &y, &u, &v, &a);
+			y1 = y;
+
+			buffer_out[i] = YUYV_PIXEL(y0,u0,y1,v0);
+		}
+		bm->bpp = 2;
+		bm->planes = 1;
+	} else if ((bm->format == FORMAT_YUV444) ||
+		   (bm->format == FORMAT_YUVA444)) {
+		uint32_t *buffer_out =  (uint32_t *)bm->buffer;
+		fprintf(stderr,
+			"Converting to output FORMAT_YUVA444 (yuva444)\n");
+		for (i = 0;  i < s; i++) {
+			uint8_t y, u, v, a;
+			bitmap_bgra_to_yuva(bm->buffer[i], &y, &u, &v, &a);
+			if (bm->format == FORMAT_YUV444)
+				a = 0;
+			buffer_out[i] = YUVA_PIXEL(y,u,v,a);
+		}
+		bm->bpp = 4;
+		bm->planes = 1;
 	} else if (bitmap_is_yuv(bm->format)) {
 		uint8_t *ybuf = &bm->buffer_luma[0];
 		uint8_t *ubuf = &bm->buffer_chroma[0];
@@ -646,8 +694,6 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 	return 0;
 }
 
-
-
 int bitmap_write_file(bitmap_t *bm, char *out)
 {
 	FILE *fout;
@@ -671,7 +717,7 @@ int bitmap_write_file(bitmap_t *bm, char *out)
 		return 1;
 	}
 
-	if (bm->format == FORMAT_YUV444) {
+	if (bm->format == FORMAT_YUV444P) {
 		s = bm->h * bm->stride;
 		e = 1;
 		fprintf(stderr, "Writing %d luma pixels (bytes)\n", s);

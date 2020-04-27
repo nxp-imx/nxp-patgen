@@ -97,6 +97,10 @@ typedef struct bitmap_color_s {
 (((y & MAX_YUVA) << 24) |  ((u & MAX_YUVA) << 16) | \
  ((v & MAX_YUVA) << 8) | (a & MAX_YUVA))
 
+#define YUYV_PIXEL(y0,u,y1,v) \
+(((y0 & MAX_YUVA) << 24) |  ((u & MAX_YUVA) << 16) | \
+ ((y1 & MAX_YUVA) << 8) | (v & MAX_YUVA))
+
 #define BGRA_RED(_p)   (((uint32_t)(_p)>> 16) & 0xff)
 #define BGRA_GREEN(_p) (((uint32_t)(_p)>>  8) & 0xff)
 #define BGRA_BLUE(_p)  (((uint32_t)(_p)>>  0) & 0xff)
@@ -117,8 +121,11 @@ enum {
 	FORMAT_BGRA8888,
 	FORMAT_BGR565,
 	FORMAT_NV12,
-	FORMAT_YUV444,
+	FORMAT_YUV444P,
 	FORMAT_YUV420,
+	FORMAT_YUV444,
+	FORMAT_YUVA444,
+	FORMAT_YUV422,
 };
 
 int bitmap_create(bitmap_t *bm, int w, int h, int stride,
