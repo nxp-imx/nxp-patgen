@@ -547,12 +547,14 @@ static void show_params(param_t *p)
 static int get_margin_size(param_t *param)
 {
 	int s = MIN(param->w, param->h);
-	if (s < 1080)
+	if (s < 4096)
+		return 64;
+	else if (s < 1080)
 		return 32;
 	else if (s <= 480)
 		return 16;
 	else
-		return 64;
+		return 256;
 }
 
 static int generate_borders(param_t *param, int *margin, char *title)
@@ -622,7 +624,7 @@ static int generate_borders(param_t *param, int *margin, char *title)
 	if (param->footer != 0) {
 		int ret;
 		fprintf(stderr, "Generating footer\n");
-		if (param->w <= 640)
+		if (param->w <= 800)
 			ret = snprintf(text, sizeof(text), "%s",
 				       param->pattern);
 		else
@@ -688,12 +690,26 @@ static int generate_test_circles(param_t *param, int x, int y, int r)
 	bitmap_get_color(&param->bm, "dark_gray", &gw[0]);
 	bitmap_get_color(&param->bm, "white", &gw[1]);
 
-	bitmap_draw_circle(&param->bm, x, y, r + 2, gw[0]);
-	bitmap_draw_circle(&param->bm, x, y, r + 1, gw[1]);
-	bitmap_draw_circle(&param->bm, x, y, r,     gw[1]);
-	bitmap_draw_circle(&param->bm, x, y, r - 1, gw[1]);
-	bitmap_draw_circle(&param->bm, x, y, r - 2, gw[0]);
-
+	/* todo use loop here */
+	if (r < 4096) {
+		bitmap_draw_circle(&param->bm, x, y, r + 2, gw[0]);
+		bitmap_draw_circle(&param->bm, x, y, r + 1, gw[1]);
+		bitmap_draw_circle(&param->bm, x, y, r,     gw[1]);
+		bitmap_draw_circle(&param->bm, x, y, r - 1, gw[1]);
+		bitmap_draw_circle(&param->bm, x, y, r - 2, gw[0]);
+	} else {
+		bitmap_draw_circle(&param->bm, x, y, r + 5, gw[0]);
+		bitmap_draw_circle(&param->bm, x, y, r + 4, gw[0]);
+		bitmap_draw_circle(&param->bm, x, y, r + 3, gw[1]);
+		bitmap_draw_circle(&param->bm, x, y, r + 2, gw[1]);
+		bitmap_draw_circle(&param->bm, x, y, r + 1, gw[1]);
+		bitmap_draw_circle(&param->bm, x, y, r,     gw[1]);
+		bitmap_draw_circle(&param->bm, x, y, r - 1, gw[1]);
+		bitmap_draw_circle(&param->bm, x, y, r - 2, gw[1]);
+		bitmap_draw_circle(&param->bm, x, y, r - 3, gw[1]);
+		bitmap_draw_circle(&param->bm, x, y, r - 4, gw[0]);
+		bitmap_draw_circle(&param->bm, x, y, r - 5, gw[0]);
+	}
 	return 0;
 }
 
@@ -1226,7 +1242,7 @@ static int gradient_secondary_colors[NUM_GRADIENT_COLORS] =
 	0, 0, 0, 255, 255, 255,
 	0, 0, 0, 0, 255, 255,
 	0, 0, 0, 255, 255, 0,
-	0, 0, 0, 255, 0, 255, 
+	0, 0, 0, 255, 0, 255,
 };
 
 static int generate_test(param_t *param, int m)
@@ -1282,7 +1298,7 @@ static int generate_test(param_t *param, int m)
 
 	generate_test_circles(param, l, t, r);
 
-	t = round(r * 0.85);
+	t = round(r * 0.67);
 
 	l = param->w / 2 - t;
 	r = param->w / 2 + t;
