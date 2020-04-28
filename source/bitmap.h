@@ -54,7 +54,7 @@ typedef union {
 	uint32_t word;
 } color_t;
 
-#define MAX_HEIGHT (4*1024)
+#define MAX_HEIGHT (8*1024)
 #define MAX_WIDTH  (8*1024)
 #define MAX_PATH 1024
 
