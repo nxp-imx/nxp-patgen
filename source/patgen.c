@@ -499,7 +499,7 @@ static void update_params(param_t *p)
 			"\trgb565le\n"
 			"\tyuv420p\n"
 			"\tyuv444p\n"
-			"\tyuv444\n"
+			"\tyuva444\n"
 			"\tyuv444\n"
 			"\tyuv422\n"
 			"\tnv12\n\n"

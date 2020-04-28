@@ -93,13 +93,17 @@ typedef struct bitmap_color_s {
 #define BGR656_PIXEL(r,g,b,a) \
 (((r & 0x1f)<<11) |  ((g&0x3f)<<5) | (b&0x1f)<<0)
 
-#define YUVA_PIXEL(y,u,v,a) \
+#define AVUY_PIXEL(y,u,v,a) \
 (((y & MAX_YUVA) << 24) |  ((u & MAX_YUVA) << 16) | \
  ((v & MAX_YUVA) << 8) | (a & MAX_YUVA))
 
+#define YUVA_PIXEL(y,u,v,a) \
+(((y & MAX_YUVA) << 0) |  ((u & MAX_YUVA) << 8) | \
+ ((v & MAX_YUVA) << 16) | ((a & MAX_YUVA)<< 24))
+
 #define YUYV_PIXEL(y0,u,y1,v) \
-(((y0 & MAX_YUVA) << 24) |  ((u & MAX_YUVA) << 16) | \
- ((y1 & MAX_YUVA) << 8) | (v & MAX_YUVA))
+(((y0 & MAX_YUVA) << 0) |  ((u & MAX_YUVA) << 8) | \
+ ((y1 & MAX_YUVA) << 16) | ((v & MAX_YUVA) << 24))
 
 #define BGRA_RED(_p)   (((uint32_t)(_p)>> 16) & 0xff)
 #define BGRA_GREEN(_p) (((uint32_t)(_p)>>  8) & 0xff)

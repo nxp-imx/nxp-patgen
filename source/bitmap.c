@@ -603,23 +603,38 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 			bitmap_bgra_to_yuva(bm->buffer[i+1], &y, &u, &v, &a);
 			y1 = y;
 
-			buffer_out[i] = YUYV_PIXEL(y0,u0,y1,v0);
+			buffer_out[i/2] = YUYV_PIXEL(y0,u0,y1,v0);
 		}
 		bm->bpp = 2;
 		bm->planes = 1;
 	} else if ((bm->format == FORMAT_YUV444) ||
 		   (bm->format == FORMAT_YUVA444)) {
-		uint32_t *buffer_out =  (uint32_t *)bm->buffer;
+		//uint32_t *buffer_out =  (uint32_t *)bm->buffer;
+		uint8_t *buffer_out =  (uint8_t *)bm->buffer;
+		int j;
 		fprintf(stderr,
 			"Converting to output FORMAT_YUVA444 (yuva444)\n");
-		for (i = 0;  i < s; i++) {
+
+		for (i = 0, j = 0 ;  i < s; i++) {
 			uint8_t y, u, v, a;
+
 			bitmap_bgra_to_yuva(bm->buffer[i], &y, &u, &v, &a);
-			if (bm->format == FORMAT_YUV444)
-				a = 0;
-			buffer_out[i] = YUVA_PIXEL(y,u,v,a);
+
+			buffer_out[j] = y;
+			buffer_out[j+1] = u;
+			buffer_out[j+2] = v;
+
+			if (bm->format == FORMAT_YUVA444) {
+				buffer_out[j+3] = a;
+				j += 4;
+			} else
+				j += 3;
 		}
-		bm->bpp = 4;
+		if (bm->format == FORMAT_YUV444) {
+			bm->bpp = 3;
+		} else {
+			bm->bpp = 4;
+		}
 		bm->planes = 1;
 	} else if (bitmap_is_yuv(bm->format)) {
 		uint8_t *ybuf = &bm->buffer_luma[0];
