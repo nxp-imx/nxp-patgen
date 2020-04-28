@@ -250,6 +250,8 @@ time ./patgen.exe -v -pattern wheel      -border -header -footer -vsize $RES -pi
 time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern colorcheck -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
+
+
 CONTAINER_FMT=bmp
 
 echo "-----------------------------------------------------------"
@@ -268,4 +270,18 @@ for file in $DIR/*.yuv ; do
      ../scripts/ff-convert.sh $file $CONTAINER_FMT
 done
 echo "-----------------------------------------------------------"
+
+
+
+TEST=test14
+RES=8192x8192
+FMT=yuva444
+
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+
+FMT=yuv444
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+
+FMT=yuv422
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
