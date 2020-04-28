@@ -250,6 +250,28 @@ time ./patgen.exe -v -pattern wheel      -border -header -footer -vsize $RES -pi
 time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern colorcheck -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
+TEST=test14
+RES=8192x8192
+FMT=bgra
+
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+
+TEST=test15
+RES=4096x4096
+FMT=bgra
+
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+
+TEST=test16
+RES=8192x4096
+FMT=bgra
+
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+
+
 
 
 CONTAINER_FMT=bmp
@@ -273,7 +295,7 @@ echo "-----------------------------------------------------------"
 
 
 
-TEST=test14
+TEST=test17
 RES=8192x8192
 FMT=yuva444
 
