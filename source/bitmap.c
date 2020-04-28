@@ -21,8 +21,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#define WIDTH   (2048)
-#define HEIGHT  (512)
+#define WIDTH   (8192)
+#define HEIGHT  (8192)
 #define X_START (4)
 #define Y_START (2)
 
@@ -581,7 +581,7 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 	if (bm->format == FORMAT_BGR565) {
 		uint16_t *buffer_out =  (uint16_t *)bm->buffer;
 		fprintf(stderr,
-			"Converting to output DRM_FORMAT_BGR565 (rgb565le)\n");
+			"Converting to output FORMAT_BGR565 (rgb565le)\n");
 		for (i = 0;  i < s; i++) {
 			buffer_out[i] = bitmap_bgra_to_bgr565(bm->buffer[i]);
 		}
@@ -590,7 +590,7 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 	} else if (bm->format == FORMAT_YUV422) {
 		uint32_t *buffer_out =  (uint32_t *)bm->buffer;
 		fprintf(stderr,
-			"Converting to output DRM_FORMAT_BGR565 (rgb565le)\n");
+			"Converting to output FORMAT_YUV422 (yuv422)\n");
 		for (i = 0;  i < s; i += 2) {
 			uint8_t y, u, v, a;
 			uint8_t y0, u0, y1, v0;
@@ -613,8 +613,6 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 		//uint32_t *buffer_out =  (uint32_t *)bm->buffer;
 		uint8_t *buffer_out =  (uint8_t *)bm->buffer;
 		int j;
-		fprintf(stderr,
-			"Converting to output FORMAT_YUVA444 (yuva444)\n");
 
 		for (i = 0, j = 0 ;  i < s; i++) {
 			uint8_t y, u, v, a;
@@ -632,8 +630,12 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 				j += 3;
 		}
 		if (bm->format == FORMAT_YUV444) {
+			fprintf(stderr,
+				"Converting to output FORMAT_YUV444 (yuv444)\n");
 			bm->bpp = 3;
 		} else {
+			fprintf(stderr,
+				"Converting to output FORMAT_YUVA444 (yuva444)\n");
 			bm->bpp = 4;
 		}
 		bm->planes = 1;
@@ -648,7 +650,7 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 		bm->w_sub = get_horizontal_sub(bm->format);
 
 		fprintf(stderr,
-			"Converting to output DRM_FORMAT_YUV444 (yuva444p)\n");
+			"Converting to output FORMAT_YUV444 (yuva444p)\n");
 		for (i = 0;  i < s; i++) {
 			uint8_t y, u, v, a;
 			bitmap_bgra_to_yuva(bm->buffer[i], &y, &u, &v, &a);
@@ -664,7 +666,7 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 			if (bm->format == FORMAT_YUV420) {
 				k = 0;
 				fprintf(stderr,
-					"Converting to output DRM_FORMAT_YUV420 (yuv420p)\n");
+					"Converting to output FORMAT_YUV420 (yuv420p)\n");
 				/* now sub sample chroma */
 				for (l = 0;  l < bm->h; l += bm->h_sub) {
 					for (i = 0;  i < bm->stride;
@@ -683,7 +685,7 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 			} else  {
 				k = 0;
 				fprintf(stderr,
-					"Converting to output DRM_FORMAT_NV12 (nv12)\n");
+					"Converting to output FORMAT_NV12 (nv12)\n");
 				/* now sub sample chroma first pass */
 				for (i = 0;  i < bm->h; i += bm->h_sub) {
 					for (j = 0;  j < bm->stride;
