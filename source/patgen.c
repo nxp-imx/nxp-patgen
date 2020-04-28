@@ -547,14 +547,14 @@ static void show_params(param_t *p)
 static int get_margin_size(param_t *param)
 {
 	int s = MIN(param->w, param->h);
+	if (s <= 480)
+		return 16;
+	if (s < 1080)
+		return 32;
 	if (s < 4096)
 		return 64;
-	else if (s < 1080)
-		return 32;
-	else if (s <= 480)
-		return 16;
-	else
-		return 256;
+	/* if s >= 4096 */
+	return 256;
 }
 
 static int generate_borders(param_t *param, int *margin, char *title)
@@ -614,9 +614,9 @@ static int generate_borders(param_t *param, int *margin, char *title)
 			bitmap_render_font(&param->bm,
 					   DEFAULT_HEADER_FONT_NAME,
 					   text,
-					   m / 2,
+					   m / 3,
 					   param->w / 2,
-					   m / 2 - 2,
+					   m / 2,
 					   bw[1]);
 		}
 	}
@@ -624,7 +624,7 @@ static int generate_borders(param_t *param, int *margin, char *title)
 	if (param->footer != 0) {
 		int ret;
 		fprintf(stderr, "Generating footer\n");
-		if (param->w <= 800)
+		if (param->w <= 640)
 			ret = snprintf(text, sizeof(text), "%s",
 				       param->pattern);
 		else
@@ -1034,7 +1034,6 @@ static int generate_color_legend(param_t *param,
 {
 	uint32_t colors[7];
 	char text[] = "RGBCYM";
-
 	int i = 0, j, x, y, l, num;
 
 	bitmap_get_color(&param->bm, "red", &colors[i++]);
@@ -1075,8 +1074,8 @@ static int generate_font(param_t *param, int m)
 	uint32_t color;
 	int i, x, y, s;
 	char text[80];
-	const int sizes[] = { 240, 480, 720, 1080, 2160 };
-	const int margin_sizes[] = { 16, 32, 64 };
+	const int sizes[] = { 240, 480, 720, 1080, 2160, 4096, 8192};
+	const int margin_sizes[] = { 16, 32, 64, 128, 256};
 
 	fprintf(stderr, "Generating font test\n");
 	generate_fill(param, m);
@@ -1084,22 +1083,22 @@ static int generate_font(param_t *param, int m)
 		m = get_margin_size(param);
 	}
 
+	fprintf(stderr, "Generating color legend\n");
 	y = param->h * 3 / 4;
-	x = param->w / 8;
-
+	x =  m * 2;
 	for (i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
 		if (sizes[i] > MIN(param->h, param->w)) {
 			break;
 		}
 		s =  round((double)(sizes[i]) * 0.08);
 		generate_color_legend(param, s, x, y);
-		x +=  (s / 2 + param->w / 16) * (i + 1);
+		x =  ((m * 2) + sizes[i]);
 	}
 
-	x = param->w / 8 + m;
-	y = param->h / 16 + m;
+	fprintf(stderr, "Generating header fonts\n");
+	x = param->w / 2;
+	y = m * 2;
 	bitmap_get_color(&param->bm, "black", &color);
-
 	for (i = 0; i < sizeof(margin_sizes) /
 	     sizeof(margin_sizes[0]); i++) {
 		if (sizes[i] > MIN(param->h, param->w)) {
@@ -1111,27 +1110,25 @@ static int generate_font(param_t *param, int m)
 		bitmap_render_font(&param->bm, DEFAULT_HEADER_FONT_NAME,
 				   text,
 				   margin_sizes[i] / 2, x, y, color);
-
 	}
 
+	fprintf(stderr, "Generating body fonts\n");
 	x = param->w / 2;
-	y = param->h / 8 + m * 2;
+	y = (param->h / 4) + (m * 2);
 	bitmap_get_color(&param->bm, "black", &color);
-
 	for (i = 0; i < sizeof(sizes) /
 	     sizeof(sizes[0]); i++) {
 		if (sizes[i] > MIN(param->h, param->w)) {
 			break;
 		}
 		s = round((double)sizes[i] * 0.1);
-		sprintf(text, "Body : %d (%dP)",
+		sprintf(text, "Body :   %d   (%dP)",
 			s, sizes[i]);
 
 		bitmap_render_font(&param->bm, DEFAULT_BODY_FONT_NAME,
 				   text,
 				   s, x, y, color);
 		y += s + s / 2;
-
 	}
 
 	return 0;
@@ -1147,7 +1144,6 @@ static int generate_grid(param_t *param)
 	}
 
 	fprintf(stderr, "Generating grid\n");
-
 	bitmap_get_color(&param->bm, "magenta", &bw[0]);
 	bitmap_get_color(&param->bm, "blue", &bw[1]);
 
@@ -1325,7 +1321,7 @@ static int generate_test(param_t *param, int m)
 				gradient_secondary_colors,
 				NUM_GRADIENT_COLORS, HORIZONTAL);
 
-	s =  round((double)(MIN(param->w, param->h) * 0.08));
+	s =  round((double)(MIN(param->w, param->h) * 0.06));
 	l = m + s / 2;
 	generate_color_legend(param,
 			      s,
