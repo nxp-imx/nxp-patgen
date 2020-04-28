@@ -374,7 +374,8 @@ int bitmap_blend_pixel(bitmap_t *bm, int x, int y, uint32_t v, int alpha)
 
 	double a = (double)(alpha & 0xff) / (double)MAX_RGBA;
 
-	PRINTD4(bm->debug, "%s(): x0 %d y0 %d v 0x%x a %f\n", __func__, x, y, v, a * 100);
+	PRINTD4(bm->debug, "%s(): x0 %d y0 %d v 0x%x a %f\n",
+		__func__, x, y, v, a * 100);
 	if ((y >= bm->h) || (x >= bm->w) || (y < 0) || (x < 0)) {
 		fprintf(stderr, "%s(): pixel out of range x %d y %d\n",
 			__func__, x, y);
