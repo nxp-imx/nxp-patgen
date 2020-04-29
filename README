@@ -103,10 +103,10 @@ usage: ./patgen.exe
 			bgra     32 bits per pixel RGBA
 			rgb565le 16 bits per pixel RGB
 			yuv444p  24 bits per pixel YUV (3 planes Y, U and V)
-			yuv444   32 bits per pixel YUV (1 planes Y, U and V, YUVx)
-			yuva444  32 bits per pixel YUV (1 planes Y, U and V, YUVA)
-			yuv422   16 bits per pixel YUV (1 planes Y, U and V, YUYV)
 			yuv420p  12 bits per pixel YUV (3 planes Y, U and V)
+			yuv444   24 bits per pixel YUV (1 plane Y, U and V, YUV)
+			yuva444  32 bits per pixel YUV (1 plane Y, U and V, YUVA)
+			yuv422   16 bits per pixel YUV (1 plane Y, U and V, YUYV)
 			nv12     12 bits per pixel YUV (2 planes Y and UV)
 
 	-vs -vsize [HxW (lines x pixels)]
