@@ -132,6 +132,10 @@ enum {
 	FORMAT_YUV422,
 };
 
+typedef struct {
+	int x,y;
+} point;
+
 int bitmap_create(bitmap_t *bm, int w, int h, int stride,
 		  int rotation, unsigned int format);
 int bitmap_destroy(bitmap_t *bm);
@@ -146,13 +150,29 @@ int bitmap_copy_line(bitmap_t *bm, int y, uint32_t *line);
 int bitmap_copy_line_segment(bitmap_t *bm, int x0, int y0,
 			     int size, uint32_t *line);
 int bitmap_draw_pixel(bitmap_t *bm, int x, int y, uint32_t v);
+int bitmap_draw_line(bitmap_t *bm,
+		     int x0, int y0,
+		     int x1, int y1,
+		     uint32_t pixel);
 int bitmap_draw_circle(bitmap_t *bm,
 		       int x0, int y0,
 		       int r0, uint32_t v);
+
+int bitmap_fill_circle(bitmap_t *bm, int x0, int y0,
+		       int r0, uint32_t v);
+
 int bitmap_fill_rectangle(bitmap_t *bm,
 			  int x0, int y0,
 			  int x1, int y1,
 			  uint32_t pixel);
+int bitmap_fill_quadrangle(bitmap_t *bm,
+		     int x0, int y0,
+		     int x1, int y1,
+		     int x2, int y2,
+		     int x3, int y4,
+		     uint32_t pixel);
+
+int bitmap_fill_polygon(bitmap_t *bm, point *polygon, int n, uint32_t pixel);
 
 int bitmap_write_file(bitmap_t *bm, char *out);
 

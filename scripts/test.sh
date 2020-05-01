@@ -183,9 +183,10 @@ time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pi
 time ./patgen.exe -v -pattern colorcheck -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
 TEST=test10
-RES=1920x1080
+RES=1920x1200
 FMT=bgra
 
+time ./patgen.exe -v -pattern checker -size 2    -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern circle     -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern colorbar   -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern colorbar2  -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"

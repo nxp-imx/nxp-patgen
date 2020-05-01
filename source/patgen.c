@@ -102,6 +102,7 @@ static const char help[] =
 	"\t\t\t\tblue, and white.\n"
 	"\t\thsv\t\tCreates an HSV color transtion gradient. The\n"
 	"\t\t\t\t-i sets the V (value) for HSV.\n"
+	"\t\tshapes\t\tDraw test shapes with a background fill\n"
 	"\t\ttest\t\tCreates a testcard like pattern.\n\n"
 	"\t\twheel\tCreates an HSV color wheel. The -i sets the V\n"
 	"\t\t\t(value) for HSV.\n\n"
@@ -1013,6 +1014,111 @@ static int generate_circle(param_t *param, int m)
 	return 0;
 }
 
+static int generate_nxp_logo(param_t *param, int m)
+{
+	int r, h, w, l, t, b, radius, dx, dy;
+	uint32_t bw[2];
+	point poly[16];
+
+	dx = 80;
+	dy = 40;
+	 
+	point s1[] = {
+		{dx +  65, dy + 142},
+		{dx + 130, dy + 142},
+		{dx + 240, dy + 270},
+		{dx + 240, dy + 142},
+		{dx + 304, dy + 142},//{304, 247},
+		{dx + 304, dy + 353},
+		{dx + 240, dy + 353},
+		{dx + 130, dy + 226},
+		{dx + 130, dy + 353},
+		{dx + 65,  dy + 353},
+	};
+	point s2[] = {
+		{dx + 241, dy + 142},
+		{dx + 304, dy + 142},
+		{dx + 304, dy + 246},
+	};
+	point s3[] = {
+		{dx + 304, dy + 246},
+		{dx + 304, dy + 353},
+		{dx + 240, dy + 353},
+	};
+
+	point s4[] = {
+		{dx + 304, dy + 142},
+		{dx + 316, dy + 142},
+		{dx + 361, dy + 212},
+		{dx + 405, dy + 142},
+		{dx + 416, dy + 142},//{304, 247},
+		{dx + 416, dy + 353},
+		{dx + 405, dy + 353},
+		{dx + 361, dy + 283},
+		{dx + 316, dy + 353},
+		{dx + 304, dy + 353},
+	};
+
+	point s5[] = {
+		{dx + 416, dy + 142},
+		{dx + 585, dy + 142},
+		{dx + 585, dy + 306},
+		{dx + 481, dy + 306},
+		{dx + 481, dy + 353},
+		{dx + 416, dy + 353},
+
+	};
+
+	point s6[] = {
+		{dx + 416, dy + 142},
+		{dx + 481, dy + 142},
+		{dx + 416, dy + 246},
+	};
+
+	point s7[] = {
+		{dx + 416, dy + 246},
+		{dx + 481, dy + 353},
+		{dx + 416, dy + 353},
+	};
+
+	bitmap_get_color(&param->bm, "magenta", &bw[0]);
+	bitmap_get_color(&param->bm, "blue",  &bw[1]);
+
+	fprintf(stderr, "Generating shapes\n");
+
+
+	l = m;
+	t = m;
+	r = param->w - m;
+	b = param->h - m;
+	w = r - l;
+	h = b - t;
+
+	bitmap_fill_rectangle(&param->bm, l, t, r, b, param->pixel);
+
+	radius = round(MIN(h, w) * 0.40);
+
+	bitmap_fill_polygon(&param->bm, s1, 10, 0xf9b500);
+	bitmap_fill_polygon(&param->bm, s2, 3, 0x958437);
+	bitmap_fill_polygon(&param->bm, s3, 3, 0x958437);
+	bitmap_fill_polygon(&param->bm, s4, 10, 0x7bb1da);
+
+	bitmap_fill_polygon(&param->bm, s5, 6, 0xc9d200);
+
+	bitmap_fill_circle(&param->bm, dx + 594, dy +198, 55, 0xc9d200);
+	bitmap_fill_circle(&param->bm, dx + 594, dy +252, 55, 0xc9d200);
+	bitmap_fill_rectangle(&param->bm, dx + 590, dy + 192, dx + 650, dy + 257,  0xc9d200);
+
+	bitmap_fill_rectangle(&param->bm, dx + 482, dy + 195, dx + 572, dy + 258,  0xffffff);
+	bitmap_fill_circle(&param->bm, dx + 572, dy + 223, 27, 0xffffff);
+	bitmap_fill_circle(&param->bm, dx + 572, dy + 230, 27, 0xffffff);
+
+	bitmap_fill_polygon(&param->bm, s6, 3, 0x739833);
+	bitmap_fill_polygon(&param->bm, s7, 3, 0x739833);
+
+	return 0;
+}
+
 static int generate_checkerboard(param_t *param, int m)
 {
 	uint32_t bw[2];
@@ -1423,6 +1529,8 @@ int main(int argc, char **argv)
 		ret = generate_fill(&param, m);
 	else if (strncmp("circle", param.pattern, 6) == 0)
 		ret = generate_circle(&param, m);
+	else if (strncmp("logo", param.pattern, 4) == 0)
+		ret = generate_nxp_logo(&param, m);
 	else if (strncmp("test", param.pattern, 4) == 0)
 		ret = generate_test(&param, m);
 	else if (strncmp("checker", param.pattern, 7) == 0)

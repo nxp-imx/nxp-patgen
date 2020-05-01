@@ -56,6 +56,8 @@ usage: ./patgen.exe
 		hsv		Creates an HSV color transtion gradient. The
 				-i sets the V (value) for HSV.
 
+		shapes		Draw test shapes with a background fill
+
 		test		Creates a testcard like pattern.
 
 		wheel	Creates an HSV color wheel. The -i sets the V
