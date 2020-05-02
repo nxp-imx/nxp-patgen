@@ -154,12 +154,22 @@ int bitmap_draw_line(bitmap_t *bm,
 		     int x0, int y0,
 		     int x1, int y1,
 		     uint32_t pixel);
+
+int bitmap_draw_line2(bitmap_t *bm,
+		      int x0, int y0,
+		      int x1, int y1,
+		      int width,
+		      uint32_t pixel);
+
+
 int bitmap_draw_circle(bitmap_t *bm,
 		       int x0, int y0,
 		       int r0, uint32_t v);
 
 int bitmap_fill_circle(bitmap_t *bm, int x0, int y0,
 		       int r0, uint32_t v);
+int bitmap_fill_circle2(bitmap_t *bm, int x0, int y0,
+		       int r0, int r1, uint32_t v);
 
 int bitmap_fill_rectangle(bitmap_t *bm,
 			  int x0, int y0,

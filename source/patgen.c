@@ -696,23 +696,13 @@ static int generate_test_circles(param_t *param, int x, int y, int r)
 
 	/* todo use loop here */
 	if (r < 4096) {
-		bitmap_draw_circle(&param->bm, x, y, r + 2, gw[0]);
-		bitmap_draw_circle(&param->bm, x, y, r + 1, gw[1]);
-		bitmap_draw_circle(&param->bm, x, y, r,     gw[1]);
-		bitmap_draw_circle(&param->bm, x, y, r - 1, gw[1]);
-		bitmap_draw_circle(&param->bm, x, y, r - 2, gw[0]);
+		bitmap_fill_circle2(&param->bm, x, y, r+2, r+3, gw[0]);
+		bitmap_fill_circle2(&param->bm, x, y, r-3, r-2, gw[0]);
+		bitmap_fill_circle2(&param->bm, x, y, r-2, r+2, gw[1]);
 	} else {
-		bitmap_draw_circle(&param->bm, x, y, r + 5, gw[0]);
-		bitmap_draw_circle(&param->bm, x, y, r + 4, gw[0]);
-		bitmap_draw_circle(&param->bm, x, y, r + 3, gw[1]);
-		bitmap_draw_circle(&param->bm, x, y, r + 2, gw[1]);
-		bitmap_draw_circle(&param->bm, x, y, r + 1, gw[1]);
-		bitmap_draw_circle(&param->bm, x, y, r,     gw[1]);
-		bitmap_draw_circle(&param->bm, x, y, r - 1, gw[1]);
-		bitmap_draw_circle(&param->bm, x, y, r - 2, gw[1]);
-		bitmap_draw_circle(&param->bm, x, y, r - 3, gw[1]);
-		bitmap_draw_circle(&param->bm, x, y, r - 4, gw[0]);
-		bitmap_draw_circle(&param->bm, x, y, r - 5, gw[0]);
+		bitmap_fill_circle2(&param->bm, x, y, r+5, r+7, gw[0]);
+		bitmap_fill_circle2(&param->bm, x, y, r-7, r+5, gw[0]);
+		bitmap_fill_circle2(&param->bm, x, y, r-5, r+5, gw[1]);
 	}
 	return 0;
 }
@@ -1016,9 +1006,7 @@ static int generate_circle(param_t *param, int m)
 
 static int generate_nxp_logo(param_t *param, int m)
 {
-	int r, h, w, l, t, b, radius, dx, dy;
-	uint32_t bw[2];
-	point poly[16];
+	int r, l, t, b, dx, dy;
 
 	dx = 80;
 	dy = 40;
@@ -1081,22 +1069,14 @@ static int generate_nxp_logo(param_t *param, int m)
 		{dx + 416, dy + 353},
 	};
 
-	bitmap_get_color(&param->bm, "magenta", &bw[0]);
-	bitmap_get_color(&param->bm, "blue",  &bw[1]);
-
-	fprintf(stderr, "Generating shapes\n");
-
+	fprintf(stderr, "Generating NXP logo\n");
 
 	l = m;
 	t = m;
 	r = param->w - m;
 	b = param->h - m;
-	w = r - l;
-	h = b - t;
 
 	bitmap_fill_rectangle(&param->bm, l, t, r, b, param->pixel);
-
-	radius = round(MIN(h, w) * 0.40);
 
 	bitmap_fill_polygon(&param->bm, s1, 10, 0xf9b500);
 	bitmap_fill_polygon(&param->bm, s2, 3, 0x958437);
@@ -1115,6 +1095,139 @@ static int generate_nxp_logo(param_t *param, int m)
 
 	bitmap_fill_polygon(&param->bm, s6, 3, 0x739833);
 	bitmap_fill_polygon(&param->bm, s7, 3, 0x739833);
+
+	return 0;
+}
+
+static int generate_shapes(param_t *param, int m)
+{
+	int r, h, w, l, t, b, i = 0;
+	point poly[16];
+	uint32_t colors[16];
+
+	bitmap_get_color(&param->bm, "white",    &colors[i++]);
+	bitmap_get_color(&param->bm, "yellow",   &colors[i++]);
+	bitmap_get_color(&param->bm, "cyan",     &colors[i++]);
+	bitmap_get_color(&param->bm, "green",    &colors[i++]);
+	bitmap_get_color(&param->bm, "magenta",  &colors[i++]);
+	bitmap_get_color(&param->bm, "red",      &colors[i++]);
+	bitmap_get_color(&param->bm, "blue",     &colors[i++]);
+	bitmap_get_color(&param->bm, "black",    &colors[i++]);
+	//bitmap_get_color(&param->bm, "white",    &colors[i++]);
+	bitmap_get_color(&param->bm, "dark_gray",&colors[i++]);
+
+	fprintf(stderr, "Generating shapes\n");
+
+
+	l = m;
+	t = m;
+	r = param->w - m;
+	b = param->h - m;
+	w = r - l;
+	h = b - t;
+
+	bitmap_fill_rectangle(&param->bm, l, t, r, b, param->pixel);
+	//radius = round(MIN(h, w) * 0.30);
+
+
+
+	l = w / 2 + m;
+	t = h / 2 + m;
+	//generate_test_circles(param, l, t, radius);
+
+	bitmap_draw_line2(&param->bm,
+			  100, 100, //int x0, int y0,
+			  150, 300, //int x1, int y1,
+			  3,
+			  colors[4]);
+	
+	bitmap_draw_line2(&param->bm,
+			  200, 100, //int x0, int y0,
+			  300, 200, //int x1, int y1,
+			  3,
+			  colors[1]);
+	
+	bitmap_draw_line2(&param->bm,
+			  100, 200, //int x0, int y0,
+			  300, 220, //int x1, int y1,
+			  3,
+			  colors[2]);
+
+	bitmap_fill_circle2(&param->bm, 400, 300,
+			       30, 60, colors[3]);
+
+	bitmap_fill_circle2(&param->bm, 900, 500,
+			       50, 100, colors[4]);
+	poly[0].x = 100; 
+	poly[0].y = 800; 
+	poly[1].x = 150; 
+	poly[1].y = 800;
+	poly[2].x = 100;
+	poly[2].y = 900;
+	bitmap_fill_polygon(&param->bm, poly, 3, colors[5]);
+
+	poly[0].x = 200; 
+	poly[0].y = 800; 
+	poly[1].x = 300; 
+	poly[1].y = 800;
+	poly[2].x = 300;
+	poly[2].y = 900;
+	poly[3].x = 200;
+	poly[3].y = 900;
+	bitmap_fill_polygon(&param->bm, poly, 4, colors[6]);
+
+	poly[0].x = 400; 
+	poly[0].y = 800; 
+	poly[1].x = 450; 
+	poly[1].y = 750; 
+	poly[2].x = 500; 
+	poly[2].y = 800;
+	poly[3].x = 500;
+	poly[3].y = 900;
+	poly[4].x = 400;
+	poly[4].y = 900;
+	bitmap_fill_polygon(&param->bm, poly, 5, colors[7]);
+
+	poly[0].x = 600; 
+	poly[0].y = 800; 
+	poly[1].x = 650; 
+	poly[1].y = 750; 
+	poly[2].x = 700; 
+	poly[2].y = 800;
+	poly[3].x = 700;
+	poly[3].y = 900;
+	poly[4].x = 650;
+	poly[4].y = 950;
+	poly[5].x = 600;
+	poly[5].y = 900;
+
+	bitmap_fill_polygon(&param->bm, poly, 6, colors[8]);
+
+	poly[0].x = 800; 
+	poly[0].y = 800; 
+
+	poly[1].x = 825; 
+	poly[1].y = 700; 
+
+	poly[2].x = 850; 
+	poly[2].y = 800;
+
+	poly[3].x = 950; 
+	poly[3].y = 825;
+
+	poly[4].x = 850;
+	poly[4].y = 850;
+
+	poly[5].x = 825;
+	poly[5].y = 950;
+
+	poly[6].x = 800;
+	poly[6].y = 850;
+
+	poly[7].x = 700;
+	poly[7].y = 825;
+
+	bitmap_fill_polygon(&param->bm, poly, 8, colors[4]);
 
 	return 0;
 }
@@ -1531,6 +1644,8 @@ int main(int argc, char **argv)
 		ret = generate_circle(&param, m);
 	else if (strncmp("logo", param.pattern, 4) == 0)
 		ret = generate_nxp_logo(&param, m);
+	else if (strncmp("shapes", param.pattern, 6) == 0)
+		ret = generate_shapes(&param, m);
 	else if (strncmp("test", param.pattern, 4) == 0)
 		ret = generate_test(&param, m);
 	else if (strncmp("checker", param.pattern, 7) == 0)

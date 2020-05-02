@@ -150,8 +150,7 @@ static uint32_t bitmap_hsv_to_rgba(bitmap_t *bm, double h, double s, double v)
 }
 
 #if 0
-static uint32_t bitmap_y8_to_rgba(uint32_t color, uint8_t y)
-{
+static uint32_t bitmap_y8_to_rgba(uint32_t color, uint8_t y){
 	double i = y / 255.0;
 	uint8_t r, g, b, a;
 
@@ -409,27 +408,111 @@ int bitmap_draw_line(bitmap_t *bm,
 		     uint32_t pixel)
 {
 	uint32_t temp;
-	uint32_t lines[MAX_WIDTH];
-	double t, x, y, r, x_temp, x_step = 0.1;
+	double x, y, x_step = 0.1;
 
 	PRINTD2(bm->debug, "%s(): x0 %d y0 %d x1 %d y1 %d pixel 0x%08x\n",
 		__func__, x0, y0, x1, y1, pixel);
 
-	if (x0 > x1 ) {
-	        temp  = x0;
-	        x0 = x1;
-	        x1 = temp;
-	        temp  = y0;
-	        y0 = y1;
-	        y1 = temp;
+	if (x0 > x1) {
+		temp  = x0;
+		x0 = x1;
+		x1 = temp;
+		temp  = y0;
+		y0 = y1;
+		y1 = temp;
 	}
 
 	for (x = x0; x < x1; x += x_step) {
-		double m = (double)(y1-y0) / (double)(x1-x0);
-		y = round(m * (x-x0) + y0);
+		double m = (double)(y1 - y0) / (double)(x1 - x0);
+		y = round(m * (x - x0) + y0);
 		bitmap_draw_pixel(bm, x, y, pixel);
 	}
 
+	return 0;
+}
+
+int bitmap_draw_line2(bitmap_t *bm,
+		      int x0, int y0,
+		      int x1, int y1,
+		      int width,
+		      uint32_t pixel)
+{
+	uint32_t temp;
+	double  f, x, y, m, step = 0.5;
+
+	PRINTD2(bm->debug, "%s(): x0 %d y0 %d x1 %d y1 %d pixel 0x%08x\n",
+		__func__, x0, y0, x1, y1, pixel);
+
+	m = (double)(y1 - y0) / (double)(x1 - x0);
+
+	if (fabs(m) < 1.0) {
+		if (x0 > x1) {
+			temp  = x0;
+			x0 = x1;
+			x1 = temp;
+			temp  = y0;
+			y0 = y1;
+			y1 = temp;
+		}
+		
+		for (x = x0; x < x1; x += step) {
+			//y = round(m * (x - x0) + y0);
+			f = m * (x - x0) + y0;
+			y = floor(f);
+			f = f - y ;
+			PRINTD4(bm->debug, "%s(): x %f y %f m %f f %f \n",
+				__func__, x, y, m, f);
+	
+			bitmap_blend_pixel(bm, x, y - 1, pixel, (1.0 - f) * 128);
+			bitmap_blend_pixel(bm, x, y + 1, pixel, (f) * 128);
+			bitmap_draw_pixel(bm, x, y, pixel);
+		}
+	} else if (fabs(m) > 1.0) {
+		if (y0 > y1) {
+			temp  = x0;
+			x0 = x1;
+			x1 = temp;
+			temp  = y0;
+			y0 = y1;
+			y1 = temp;
+		}
+
+		for (y = y0; y < y1; y += step) {
+			//y = round(m * (x - x0) + y0);
+			f =  ((y - y0) / m) + x0;
+			x = floor(f);
+			f = f - x;
+
+			PRINTD4(bm->debug, "%s(): x %f y %f m %f f %f \n",
+				__func__, x, y, m, f);
+			bitmap_blend_pixel(bm, x - 1, y, pixel, (1.0 - f) * 128);
+			bitmap_blend_pixel(bm, x + 1, y, pixel, (f) * 128);
+			bitmap_draw_pixel(bm, x, y, pixel);
+		}
+	} else {
+		if (x0 > x1) {
+			temp  = x0;
+			x0 = x1;
+			x1 = temp;
+			temp  = y0;
+			y0 = y1;
+			y1 = temp;
+		}
+
+		step = 1.0;
+		for (x = x0; x < x1; x += step) {
+			//y = round(m * (x - x0) + y0);
+			f = m * (x - x0) + y0;
+			y = floor(f);
+			//= f - y ;
+			PRINTD4(bm->debug, "%s(): x %f y %f m %f f %f \n",
+				__func__, x, y, m, f);
+
+			bitmap_blend_pixel(bm, x, y - 1, pixel, 64);
+			bitmap_blend_pixel(bm, x, y + 1, pixel, 64);
+			bitmap_draw_pixel(bm, x, y, pixel);
+		}
+	}
 	return 0;
 }
 
@@ -457,10 +540,18 @@ int bitmap_draw_circle(bitmap_t *bm, int x0, int y0,
 	return 0;
 }
 
+double calculate_radius(bitmap_t *bm, int x0, int y0, int x, int y)
+{
+	double r;
+	r = (double)(x - x0) * (double)(x - x0);
+	r += (double)(y - y0) * (double)(y - y0);
+	return sqrt(r);	
+}
+
 int bitmap_fill_circle(bitmap_t *bm, int x0, int y0,
 		       int r0, uint32_t v)
 {
-	double i, t, x, y, r, x_temp, x_step = 0.0005;
+	double t, x, y, r, x_temp, x_step = 0.0005;
 	r = r0;
 
 	PRINTD3(bm->debug, "%s(): x0 %d y0 %d r0 %d v %u\n",
@@ -485,12 +576,48 @@ int bitmap_fill_circle(bitmap_t *bm, int x0, int y0,
 	return 0;
 }
 
+int bitmap_fill_circle2(bitmap_t *bm, int x0, int y0,
+		       int r0, int r1, uint32_t v)
+{
+	double r = r0;
+
+	int x, y, xmin, xmax, ymin, ymax;
+	
+	PRINTD3(bm->debug, "%s(): x0 %d y0 %d r0 %d v %u\n",
+		__func__, x0, y0, r0, v);
+
+	xmin = x0 - r1;
+	xmax = x0 + r1;
+	ymin = y0 - r1;
+	ymax = y0 + r1;
+		
+	for (y = ymin; y <=  ymax; y++) {
+		for (x = xmin; x <=  xmax; x++) {
+			r = calculate_radius(bm, x0, y0, x, y);
+			if ((r < r1)  && (r > r0)) {
+				bitmap_draw_pixel(bm, x, y, v);
+			} else if ( ((r - r1) < 1.00) && (r >  r0)) {
+				bitmap_blend_pixel(bm, x, y, v,
+						   (1 - (r - r1)) * 255 );
+			} else if ( ((r0 - r) < 1.00) && (r <  r1)) {
+				bitmap_blend_pixel(bm, x, y, v,
+						   (1- (r0- r)) * 255 );
+			}
+		}
+	}
+
+	return 0;
+}
+
+
+
 /*
    Return the angle between two vectors on a plane
    The angle is from vector 1 to vector 2, positive anticlockwise
    The result is between -pi -> pi
 */
-double Angle2D(double x1, double y1, double x2, double y2) {
+double Angle2D(double x1, double y1, double x2, double y2)
+{
 	double dtheta, theta1, theta2;
 
 	theta1 = atan2(y1, x1);
@@ -502,7 +629,8 @@ double Angle2D(double x1, double y1, double x2, double y2) {
 	return (dtheta);
 }
 
-int InsidePolygon(bitmap_t *bm, point *polygon, int n, point p) {
+int InsidePolygon(bitmap_t *bm, point *polygon, int n, point p)
+{
 	int i;
 	double angle = 0;
 	point p1, p2;
@@ -543,8 +671,8 @@ int InsidePolygon(bitmap_t *bm, point *polygon, int n, point p) {
 int find_xmin(point vertexes[], int n)
 {
 	int t = WIDTH;
-	for (int i= 0; i < n; i++) {
-		if ( vertexes[i].x < t) 
+	for (int i = 0; i < n; i++) {
+		if (vertexes[i].x < t)
 			t = vertexes[i].x;
 	}
 	return t;
@@ -553,8 +681,8 @@ int find_xmin(point vertexes[], int n)
 int find_xmax(point vertexes[], int n)
 {
 	int t = 0;
-	for (int i= 0; i < n; i++) {
-		if ( vertexes[i].x > t) 
+	for (int i = 0; i < n; i++) {
+		if (vertexes[i].x > t)
 			t = vertexes[i].x;
 	}
 	return t;
@@ -563,8 +691,8 @@ int find_xmax(point vertexes[], int n)
 int find_ymin(point vertexes[], int n)
 {
 	int t = HEIGHT;
-	for (int i= 0; i < n; i++) {
-		if ( vertexes[i].y < t) 
+	for (int i = 0; i < n; i++) {
+		if (vertexes[i].y < t)
 			t = vertexes[i].y;
 	}
 	return t;
@@ -573,8 +701,8 @@ int find_ymin(point vertexes[], int n)
 int find_ymax(point vertexes[], int n)
 {
 	int t = 0;
-	for (int i= 0; i < n; i++) {
-		if ( vertexes[i].y > t) 
+	for (int i = 0; i < n; i++) {
+		if (vertexes[i].y > t)
 			t = vertexes[i].y;
 	}
 	return t;
@@ -604,19 +732,19 @@ int bitmap_fill_rectangle(bitmap_t *bm,
 }
 
 int bitmap_fill_quadrangle(bitmap_t *bm,
-		     int x0, int y0,
-		     int x1, int y1,
-		     int x2, int y2,
-		     int x3, int y3,
-		     uint32_t pixel)
+			   int x0, int y0,
+			   int x1, int y1,
+			   int x2, int y2,
+			   int x3, int y3,
+			   uint32_t pixel)
 {
 	uint32_t y, x, l, t, r, b;
-	point p; 
+	point p;
 	point vertexes[4] = {
-		{ x0,  y0},
-		{ x1,  y1},
-		{ x2,  y2},
-		{ x3,  y3},
+		{ x0,  y0 },
+		{ x1,  y1 },
+		{ x2,  y2 },
+		{ x3,  y3 },
 	};
 
 	PRINTD2(bm->debug, "%s(): x0 %d y0 %d x1 %d y1 %d pixel 0x%08x\n",
@@ -624,26 +752,26 @@ int bitmap_fill_quadrangle(bitmap_t *bm,
 	PRINTD2(bm->debug, "%s(): x2 %d y2 %d x3 %d y3 %d pixel 0x%08x\n",
 		__func__, x2, y2, x3, y3, pixel);
 
-       bitmap_draw_line(bm,
-              	 x0, y0,
-              	 x1, y1,
-              	 pixel);
-       
-       bitmap_draw_line(bm,
-              	 x0, y0,
-              	 x2, y2,
-              	 pixel);
-       
-       bitmap_draw_line(bm,
-              	 x1, y1,
-              	 x3, y3,
-              	 pixel);
-       
-       bitmap_draw_line(bm,
-              	 x2, y2,
-              	 x3, y3,
-              	 pixel);
-       
+	bitmap_draw_line(bm,
+			 x0, y0,
+			 x1, y1,
+			 pixel);
+
+	bitmap_draw_line(bm,
+			 x0, y0,
+			 x2, y2,
+			 pixel);
+
+	bitmap_draw_line(bm,
+			 x1, y1,
+			 x3, y3,
+			 pixel);
+
+	bitmap_draw_line(bm,
+			 x2, y2,
+			 x3, y3,
+			 pixel);
+
 
 	l = find_xmin(vertexes, 4);
 	r = find_xmax(vertexes, 4);
@@ -669,7 +797,7 @@ int bitmap_fill_quadrangle(bitmap_t *bm,
 int bitmap_fill_polygon(bitmap_t *bm, point *polygon, int n, uint32_t pixel)
 {
 	uint32_t y, x, l, t, r, b;
-	point p; 
+	point p;
 
 	l = find_xmin(polygon, n);
 	r = find_xmax(polygon, n);
@@ -848,10 +976,10 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 			v0 = v;
 
 			/* todo: handle odd widths */
-			bitmap_bgra_to_yuva(bm->buffer[i+1], &y, &u, &v, &a);
+			bitmap_bgra_to_yuva(bm->buffer[i + 1], &y, &u, &v, &a);
 			y1 = y;
 
-			buffer_out[i/2] = YUYV_PIXEL(y0,u0,y1,v0);
+			buffer_out[i / 2] = YUYV_PIXEL(y0, u0, y1, v0);
 		}
 		bm->bpp = 2;
 		bm->planes = 1;
@@ -861,17 +989,17 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 		uint8_t *buffer_out =  (uint8_t *)bm->buffer;
 		int j;
 
-		for (i = 0, j = 0 ;  i < s; i++) {
+		for (i = 0, j = 0;  i < s; i++) {
 			uint8_t y, u, v, a;
 
 			bitmap_bgra_to_yuva(bm->buffer[i], &y, &u, &v, &a);
 
 			buffer_out[j] = y;
-			buffer_out[j+1] = u;
-			buffer_out[j+2] = v;
+			buffer_out[j + 1] = u;
+			buffer_out[j + 2] = v;
 
 			if (bm->format == FORMAT_YUVA444) {
-				buffer_out[j+3] = a;
+				buffer_out[j + 3] = a;
 				j += 4;
 			} else
 				j += 3;
@@ -1165,11 +1293,9 @@ static double adjust_angle(double a)
 {
 	double v = a;
 	if (a < 0)
-		while (v < 0)
-			v += 360.0;
+		while (v < 0) v += 360.0;
 	else
-		while (v > 360.0)
-			v -= 360.0;
+		while (v > 360.0) v -= 360.0;
 	return v;
 }
 
@@ -1205,10 +1331,10 @@ int bitmap_hsv_circle(bitmap_t *bm,
 
 			angle += DEG2RAD(90.0);
 			deg = adjust_angle(RAD2DEG(-angle);
-			radius = sqrt(pow(opp, 2.0) +
-				      pow(adj, 2.0));
+					   radius = sqrt(pow(opp, 2.0) +
+							 pow(adj, 2.0));
 
-			if (radius <= size) {
+					   if (radius <= size) {
 				c = bitmap_hsv_to_rgba(bm, deg,
 						       radius / size,
 						       val / 100.0);
@@ -1387,10 +1513,9 @@ static void show_image(void)
 	int  i, j;
 
 	for (i = 0; i < HEIGHT; i++) {
-		for (j = 0; j < WIDTH; j++)
-			putchar(image[i][j] == 0 ? ' '
-				: image[i][j] < 128 ? '+'
-				: '*');
+		for (j = 0; j < WIDTH; j++) putchar(image[i][j] == 0 ? ' '
+						    : image[i][j] < 128 ? '+'
+						    : '*');
 		putchar('\n');
 	}
 }
