@@ -293,24 +293,24 @@ static int command_parse(int argc, char **argv, param_t *p)
 					"-steps = %lu\n", p->steps);
 			break;
 		case 'o':
-			strncpy(p->prefix, optarg, sizeof(p->prefix));
+			snprintf(p->prefix, sizeof(p->prefix), "%s", optarg);
 			if (p->verbose)
 				fprintf(stderr, "-o =   %s\n",
 					p->prefix);
 			break;
 		case OPT_FB:
-			strncpy(p->fb, optarg, sizeof(p->fb));
+			snprintf(p->fb, sizeof(p->fb), "%s", optarg);
 			if (p->verbose)
 				fprintf(stderr, "-fb =   %s\n", p->fb);
 			break;
 		case 'p':
-			strncpy(p->pattern, optarg, sizeof(p->pattern));
+			snprintf(p->pattern, sizeof(p->pattern), "%s", optarg);
 			if (p->verbose)
 				fprintf(stderr, "-p -pattern =   %s\n",
 					p->pattern);
 			break;
 		case OPT_VSIZE:
-			strncpy(p->size, optarg, sizeof(p->size));
+			snprintf(p->size, sizeof(p->size), "%s", optarg);
 			if (p->verbose)
 				fprintf(stderr, "-vs -video_size =   %s\n",
 					p->size);
@@ -351,7 +351,7 @@ static int command_parse(int argc, char **argv, param_t *p)
 					p->w);
 			break;
 		case OPT_PIX_FMT:
-			strncpy(p->outformat, optarg, sizeof(p->outformat));
+			snprintf(p->outformat, sizeof(p->outformat), "%s", optarg);
 			if (p->verbose)
 				fprintf(stderr, "-pix_fmt =      %s\n",
 					p->outformat);
@@ -1010,7 +1010,7 @@ static int generate_nxp_logo(param_t *param, int m)
 
 	dx = 80;
 	dy = 40;
-	 
+
 	point s1[] = {
 		{dx +  65, dy + 142},
 		{dx + 130, dy + 142},
@@ -1139,14 +1139,14 @@ static int generate_shapes(param_t *param, int m)
 			  100, 100, //int x0, int y0,
 			  150, 300, //int x1, int y1,
 			  3,
-			  colors[4]);
-	
+			  colors[1]);
+
 	bitmap_draw_line2(&param->bm,
 			  200, 100, //int x0, int y0,
 			  300, 200, //int x1, int y1,
 			  3,
 			  colors[1]);
-	
+
 	bitmap_draw_line2(&param->bm,
 			  100, 200, //int x0, int y0,
 			  300, 220, //int x1, int y1,
@@ -1158,17 +1158,48 @@ static int generate_shapes(param_t *param, int m)
 
 	bitmap_fill_circle2(&param->bm, 900, 500,
 			       50, 100, colors[4]);
-	poly[0].x = 100; 
-	poly[0].y = 800; 
-	poly[1].x = 150; 
+
+
+	/* roygbiv  from color checker */
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			 100, 120,
+			 DEG2RAD(0), DEG2RAD(180),
+			 0x00af363c);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			 120, 140,
+			 DEG2RAD(0), DEG2RAD(180),
+			 0x00d67e2c);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			 140, 160,
+			 DEG2RAD(0), DEG2RAD(180),
+			 0x00e7c71f);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			  160, 180,
+			  DEG2RAD(0), DEG2RAD(180),
+			  0x00469449);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			 180, 200,
+			 DEG2RAD(0), DEG2RAD(180),
+			 0x00627a9d);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			  200, 220,
+			  DEG2RAD(0), DEG2RAD(180),
+			  0x00505ba6);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			  220, 240,
+			  DEG2RAD(0), DEG2RAD(180),
+			  0x00383d96);
+	poly[0].x = 100;
+	poly[0].y = 800;
+	poly[1].x = 150;
 	poly[1].y = 800;
 	poly[2].x = 100;
 	poly[2].y = 900;
 	bitmap_fill_polygon(&param->bm, poly, 3, colors[5]);
 
-	poly[0].x = 200; 
-	poly[0].y = 800; 
-	poly[1].x = 300; 
+	poly[0].x = 200;
+	poly[0].y = 800;
+	poly[1].x = 300;
 	poly[1].y = 800;
 	poly[2].x = 300;
 	poly[2].y = 900;
@@ -1176,11 +1207,11 @@ static int generate_shapes(param_t *param, int m)
 	poly[3].y = 900;
 	bitmap_fill_polygon(&param->bm, poly, 4, colors[6]);
 
-	poly[0].x = 400; 
-	poly[0].y = 800; 
-	poly[1].x = 450; 
-	poly[1].y = 750; 
-	poly[2].x = 500; 
+	poly[0].x = 400;
+	poly[0].y = 800;
+	poly[1].x = 450;
+	poly[1].y = 750;
+	poly[2].x = 500;
 	poly[2].y = 800;
 	poly[3].x = 500;
 	poly[3].y = 900;
@@ -1188,11 +1219,11 @@ static int generate_shapes(param_t *param, int m)
 	poly[4].y = 900;
 	bitmap_fill_polygon(&param->bm, poly, 5, colors[7]);
 
-	poly[0].x = 600; 
-	poly[0].y = 800; 
-	poly[1].x = 650; 
-	poly[1].y = 750; 
-	poly[2].x = 700; 
+	poly[0].x = 600;
+	poly[0].y = 800;
+	poly[1].x = 650;
+	poly[1].y = 750;
+	poly[2].x = 700;
 	poly[2].y = 800;
 	poly[3].x = 700;
 	poly[3].y = 900;
@@ -1203,16 +1234,16 @@ static int generate_shapes(param_t *param, int m)
 
 	bitmap_fill_polygon(&param->bm, poly, 6, colors[8]);
 
-	poly[0].x = 800; 
-	poly[0].y = 800; 
+	poly[0].x = 800;
+	poly[0].y = 800;
 
-	poly[1].x = 825; 
-	poly[1].y = 700; 
+	poly[1].x = 825;
+	poly[1].y = 700;
 
-	poly[2].x = 850; 
+	poly[2].x = 850;
 	poly[2].y = 800;
 
-	poly[3].x = 950; 
+	poly[3].x = 950;
 	poly[3].y = 825;
 
 	poly[4].x = 850;

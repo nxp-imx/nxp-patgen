@@ -66,6 +66,13 @@ typedef union {
 #define MAX_RB5   0x1f
 #define MAX_G6    0x3f
 
+#define PI M_PI
+#define PHASE_120 (120.0/180 * PI)
+#define PHASE_90 (90.0/180*PI)
+#define TWOPI (2*M_PI)
+#define DEG2RAD(deg) ((double)deg / 180.0 * PI)
+#define RAD2DEG(rad) ((double)rad / PI * 180.0))
+
 /* these are used to allocate the max size buffers needed
  * for RGB and YUV
 */
@@ -170,6 +177,11 @@ int bitmap_fill_circle(bitmap_t *bm, int x0, int y0,
 		       int r0, uint32_t v);
 int bitmap_fill_circle2(bitmap_t *bm, int x0, int y0,
 		       int r0, int r1, uint32_t v);
+
+int bitmap_draw_arc(bitmap_t *bm, int x0, int y0,
+		     int r0, int r1,
+		     double theata0, double theata1,
+		     uint32_t v);
 
 int bitmap_fill_rectangle(bitmap_t *bm,
 			  int x0, int y0,

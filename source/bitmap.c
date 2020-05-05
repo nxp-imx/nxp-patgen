@@ -26,14 +26,6 @@
 #define X_START (4)
 #define Y_START (2)
 
-#define PI M_PI
-#define PHASE_120 (120.0/180 * PI)
-#define PHASE_90 (90.0/180*PI)
-#define TWOPI (2*M_PI)
-#
-#define DEG2RAD(deg) ((double)deg / 180.0 * PI)
-#define RAD2DEG(rad) ((double)rad / PI * 180.0))
-
 #include "bitmap.h"
 
 #ifdef DEBUG
@@ -454,7 +446,7 @@ int bitmap_draw_line2(bitmap_t *bm,
 			y0 = y1;
 			y1 = temp;
 		}
-		
+
 		for (x = x0; x < x1; x += step) {
 			//y = round(m * (x - x0) + y0);
 			f = m * (x - x0) + y0;
@@ -462,9 +454,11 @@ int bitmap_draw_line2(bitmap_t *bm,
 			f = f - y ;
 			PRINTD4(bm->debug, "%s(): x %f y %f m %f f %f \n",
 				__func__, x, y, m, f);
-	
-			bitmap_blend_pixel(bm, x, y - 1, pixel, (1.0 - f) * 128);
-			bitmap_blend_pixel(bm, x, y + 1, pixel, (f) * 128);
+
+			bitmap_blend_pixel(bm, x, y - 1, pixel,
+					   (1.0 - f) * 128);
+			bitmap_blend_pixel(bm, x, y + 1,
+					   pixel, (f) * 128);
 			bitmap_draw_pixel(bm, x, y, pixel);
 		}
 	} else if (fabs(m) > 1.0) {
@@ -485,8 +479,10 @@ int bitmap_draw_line2(bitmap_t *bm,
 
 			PRINTD4(bm->debug, "%s(): x %f y %f m %f f %f \n",
 				__func__, x, y, m, f);
-			bitmap_blend_pixel(bm, x - 1, y, pixel, (1.0 - f) * 128);
-			bitmap_blend_pixel(bm, x + 1, y, pixel, (f) * 128);
+			bitmap_blend_pixel(bm, x - 1, y, pixel,
+					   (1.0 - f) * 128);
+			bitmap_blend_pixel(bm, x + 1, y, pixel,
+					   (f) * 128);
 			bitmap_draw_pixel(bm, x, y, pixel);
 		}
 	} else {
@@ -545,7 +541,7 @@ double calculate_radius(bitmap_t *bm, int x0, int y0, int x, int y)
 	double r;
 	r = (double)(x - x0) * (double)(x - x0);
 	r += (double)(y - y0) * (double)(y - y0);
-	return sqrt(r);	
+	return sqrt(r);
 }
 
 int bitmap_fill_circle(bitmap_t *bm, int x0, int y0,
@@ -562,10 +558,6 @@ int bitmap_fill_circle(bitmap_t *bm, int x0, int y0,
 		x_temp = x;
 		t = (r * r) - (x_temp * x_temp);
 		t = sqrt(t);
-		//y = y0 + t;
-		//bitmap_draw_pixel(bm, round(x) + x0, round(y), v);
-		//y = y0 - t;
-		//bitmap_draw_pixel(bm, round(x) + x0, round(y), v);
 
 		PRINTD5(bm->debug, " x %f y %f r %f t %f\n", x, y, r, t);
 		for (y = round(y0 - t); y < round(y0 + t); y++) {
@@ -582,7 +574,7 @@ int bitmap_fill_circle2(bitmap_t *bm, int x0, int y0,
 	double r = r0;
 
 	int x, y, xmin, xmax, ymin, ymax;
-	
+
 	PRINTD3(bm->debug, "%s(): x0 %d y0 %d r0 %d v %u\n",
 		__func__, x0, y0, r0, v);
 
@@ -590,7 +582,7 @@ int bitmap_fill_circle2(bitmap_t *bm, int x0, int y0,
 	xmax = x0 + r1;
 	ymin = y0 - r1;
 	ymax = y0 + r1;
-		
+
 	for (y = ymin; y <=  ymax; y++) {
 		for (x = xmin; x <=  xmax; x++) {
 			r = calculate_radius(bm, x0, y0, x, y);
@@ -609,45 +601,52 @@ int bitmap_fill_circle2(bitmap_t *bm, int x0, int y0,
 	return 0;
 }
 
+int bitmap_draw_arc(bitmap_t *bm, int x0, int y0,
+		     int r0, int r1,
+		     double theata0, double theata1,
+		     uint32_t v)
+{
+	double r = r0, angle;
 
+	int x, y, xmin, xmax, ymin, ymax;
+
+	PRINTD3(bm->debug, "%s(): x0 %d y0 %d r0 %d v %u\n",
+		__func__, x0, y0, r0, v);
+
+	xmin = x0 - r1;
+	xmax = x0 + r1;
+	ymin = y0 - r1;
+	ymax = y0 + r1;
+
+	for (y = ymin; y <=  ymax; y++) {
+		for (x = xmin; x <=  xmax; x++) {
+			angle = atan2(-(y-y0), x-x0);
+			if (( theata0 < angle) &&
+			    ( theata1 > angle)){
+				r = calculate_radius(bm, x0, y0, x, y);
+				if ((r < r1)  && (r > r0)) {
+					bitmap_draw_pixel(bm, x, y, v);
+				} else if ( ((r - r1) < 1.00) && (r >  r0)) {
+					bitmap_blend_pixel(bm, x, y, v,
+							   (1 - (r - r1))
+							   * 255);
+				} else if ( ((r0 - r) < 1.00) && (r <  r1)) {
+					bitmap_blend_pixel(bm, x, y, v,
+							   (1- (r0- r))
+							   * 255);
+				}
+			}
+		}
+	}
+
+	return 0;
+}
 
 /*
    Return the angle between two vectors on a plane
    The angle is from vector 1 to vector 2, positive anticlockwise
    The result is between -pi -> pi
 */
-double Angle2D(double x1, double y1, double x2, double y2)
-{
-	double dtheta, theta1, theta2;
-
-	theta1 = atan2(y1, x1);
-	theta2 = atan2(y2, x2);
-	dtheta = theta2 - theta1;
-	while (dtheta > PI) dtheta -= TWOPI;
-	while (dtheta < -PI) dtheta += TWOPI;
-
-	return (dtheta);
-}
-
-int InsidePolygon(bitmap_t *bm, point *polygon, int n, point p)
-{
-	int i;
-	double angle = 0;
-	point p1, p2;
-
-	for (i = 0; i < n; i++) {
-		p1.x = polygon[i].x - p.x;
-		p1.y = polygon[i].y - p.y;
-		p2.x = polygon[(i + 1) % n].x - p.x;
-		p2.y = polygon[(i + 1) % n].y - p.y;
-		angle += Angle2D(p1.x, p1.y, p2.x, p2.y);
-	}
-	if (fabs(angle) < PI) {
-		return 0;
-	}
-	return 1;
-}
-
 /*              0-------------1                */
 /*              |FFFFFFFFFFFFF|                */
 /*              |FFFFFFFFFFFFF|                */
@@ -666,6 +665,39 @@ int InsidePolygon(bitmap_t *bm, point *polygon, int n, point p)
 /*                  \   /                      */
 /*                   \ /                       */
 /*                    3                        */
+
+double calculate_angle(double x1, double y1, double x2, double y2)
+{
+	double dtheta, theta1, theta2;
+
+	theta1 = atan2(y1, x1);
+	theta2 = atan2(y2, x2);
+	dtheta = theta2 - theta1;
+	while (dtheta > PI) dtheta -= TWOPI;
+	while (dtheta < -PI) dtheta += TWOPI;
+
+	return (dtheta);
+}
+
+int is_inside(bitmap_t *bm, point *polygon, int n, point p)
+{
+	int i;
+	double angle = 0;
+	point p1, p2;
+
+	for (i = 0; i < n; i++) {
+		p1.x = polygon[i].x - p.x;
+		p1.y = polygon[i].y - p.y;
+		p2.x = polygon[(i + 1) % n].x - p.x;
+		p2.y = polygon[(i + 1) % n].y - p.y;
+		angle += calculate_angle(p1.x, p1.y, p2.x, p2.y);
+	}
+	if (fabs(angle) < PI) {
+		return 0;
+	}
+	return 1;
+}
+
 
 
 int find_xmin(point vertexes[], int n)
@@ -772,7 +804,6 @@ int bitmap_fill_quadrangle(bitmap_t *bm,
 			 x3, y3,
 			 pixel);
 
-
 	l = find_xmin(vertexes, 4);
 	r = find_xmax(vertexes, 4);
 	t = find_ymin(vertexes, 4);
@@ -787,7 +818,7 @@ int bitmap_fill_quadrangle(bitmap_t *bm,
 			p.y = y;
 			PRINTD5(bm->debug, "%s(): x %d y %d pixel 0x%08x\n",
 				__func__, x, y, pixel);
-			if (InsidePolygon(bm, vertexes, 4, p))
+			if (is_inside(bm, vertexes, 4, p))
 				bitmap_draw_pixel(bm, x, y, pixel);
 		}
 	}
@@ -799,10 +830,10 @@ int bitmap_fill_polygon(bitmap_t *bm, point *polygon, int n, uint32_t pixel)
 	uint32_t y, x, l, t, r, b;
 	point p;
 
-	l = find_xmin(polygon, n);
-	r = find_xmax(polygon, n);
-	t = find_ymin(polygon, n);
-	b = find_ymax(polygon, n);
+	l = find_xmin(polygon, n)-1;
+	r = find_xmax(polygon, n)+1;
+	t = find_ymin(polygon, n)-1;
+	b = find_ymax(polygon, n)+1;
 
 	for (y = t; y <= b; y++) {
 		for (x = l; x <= r; x++) {
@@ -810,10 +841,11 @@ int bitmap_fill_polygon(bitmap_t *bm, point *polygon, int n, uint32_t pixel)
 			p.y = y;
 			PRINTD5(bm->debug, "%s(): x %d y %d pixel 0x%08x\n",
 				__func__, x, y, pixel);
-			if (InsidePolygon(bm, polygon, n, p))
+			if (is_inside(bm, polygon, n, p))
 				bitmap_draw_pixel(bm, x, y, pixel);
 		}
 	}
+
 	return 0;
 }
 
@@ -985,7 +1017,6 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 		bm->planes = 1;
 	} else if ((bm->format == FORMAT_YUV444) ||
 		   (bm->format == FORMAT_YUVA444)) {
-		//uint32_t *buffer_out =  (uint32_t *)bm->buffer;
 		uint8_t *buffer_out =  (uint8_t *)bm->buffer;
 		int j;
 
@@ -1129,6 +1160,7 @@ int bitmap_write_file(bitmap_t *bm, char *out)
 		e = 1;
 		fprintf(stderr, "Writing %d luma pixels (bytes)\n", s);
 		fwrite(&bm->buffer_luma[0], s, 1, fout);
+
 		/* For YUV420   u, u, u, ... v, v, v, ... */
 		/* For NV12     uv, uv, uv ...*/
 		s =   (bm->h * bm->stride) / (bm->h_sub * bm->w_sub) * 2;
@@ -1287,7 +1319,6 @@ int bitmap_gradient(bitmap_t *bm,
 
 	return 0;
 }
-
 
 static double adjust_angle(double a)
 {
