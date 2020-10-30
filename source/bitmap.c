@@ -600,6 +600,31 @@ int bitmap_fill_circle2(bitmap_t *bm, int x0, int y0,
 
 	return 0;
 }
+#if 0
+int bitmap_fill_circle(bitmap_t *bm, int x0, int y0,
+		       int r0, uint32_t v)
+{
+	double t, x, y, r, x_temp, x_step = 0.0005;
+	r = r0;
+
+	PRINTD3(bm->debug, "%s(): x0 %d y0 %d r0 %d v %u\n",
+		__func__, x0, y0, r0, v);
+
+	for (x = -r; x <=  r; x += x_step) {
+		/*y = +- sqrt( r^2 - x^2  )*/
+		x_temp = x;
+		t = (r * r) - (x_temp * x_temp);
+		t = sqrt(t);
+
+		PRINTD5(bm->debug, " x %f y %f r %f t %f\n", x, y, r, t);
+		for (y = round(y0 - t); y < round(y0 + t); y++) {
+			bitmap_draw_pixel(bm, round(x) + x0, y, v);
+		}
+	}
+
+	return 0;
+}
+#endif
 
 int bitmap_draw_arc(bitmap_t *bm, int x0, int y0,
 		     int r0, int r1,
