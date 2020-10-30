@@ -100,12 +100,12 @@ static const char help[] =
 	"\t\t\t\tgreen , blue and white.\n\n"
 	"\t\tvgradient\tCreates four vertical gradient bars red, green,\n"
 	"\t\t\t\tblue, and white.\n"
-	"\t\thsv\t\tCreates an HSV color transtion gradient. The\n"
+	"\t\thsv\t\tCreates an HSV color transition gradient. The\n"
 	"\t\t\t\t-i sets the V (value) for HSV.\n"
 	"\t\ttest\t\tCreates a testcard like pattern.\n\n"
 	"\t\twheel\tCreates an HSV color wheel. The -i sets the V\n"
 	"\t\t\t(value) for HSV.\n\n"
-	"\t-border\n\t\tAdds a border to the patern\n\n"
+	"\t-border\n\t\tAdds a border to the pattern\n\n"
 	"\t-header\n\t\tAdds header text to the pattern border\n\n"
 	"\t-footer\n\t\tAdds footer text to the pattern border\n\n"
 	"\t-a -alpha [alpha (%%)]\n\t\tSets the alpha value. Default is 100.0%%\n\n"
@@ -134,7 +134,7 @@ static const char help[] =
 	"\t\t\tnv12     12 bits per pixel YUV (2 planes Y and UV)\n\n"
 	"\t-vs -vsize [HxW (pixelsxpixels] Sets the width and hight of the output\n\n"
 	"\t-r -rotation [rotation (degrees)] rotates the final image to 0, 90, 180, or 270\n\n"
-	"\t-stride [stride (pixels)] Sets the stride if it is larger the the width\n\n"
+	"\t-stride [stride (pixels)] Sets the stride if it is larger the width\n\n"
 	"\t-fb [frame buffer device] Name of the framebuffer device file\n\n"
 ;
 
