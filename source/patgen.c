@@ -734,7 +734,7 @@ static int generate_test_center(param_t *param,
 	bitmap_fill_rectangle(&param->bm, l + m, t + m, r - m, b - m, bw[0]);
 
 	snprintf(text, sizeof(text), "%ld x %ld",  param->w, param->h);
-	s = round(param->h * 0.1); /* font size */
+	s = round(MIN(param->w, param->h) * 0.1); /* font size */
 
 	bitmap_render_font(&param->bm,
 			   DEFAULT_BODY_FONT_NAME,
