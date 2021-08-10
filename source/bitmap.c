@@ -527,13 +527,13 @@ static int bitmap_rotate_buffer(bitmap_t *bm)
 	for (y = 0;  y < h; y++) {
 		for (x = 0;  x < w; x++) {
 			if (bm->rotation == 90) {
-				i = ((x)*h) + (h - y);
+				i = ((x)*h) + ((h-1) - y);
 				j = (y * w) + x;
 			} else if (bm->rotation == 180) {
-				i = ((h - y) * w) + (w - x);
+				i = (((h-1) - y) * w) + ((w-1) - x);
 				j = (y * w) + x;
 			} else if (bm->rotation == 270) {
-				i = ((w - x) * h) + (y);
+				i = (((w-1) - x) * h) + (y);
 				j = (y * w) + x;
 			} else {
 				/* default is rotation 0 degrees*/
