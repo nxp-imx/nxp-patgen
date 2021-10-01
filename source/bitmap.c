@@ -46,6 +46,7 @@ fprintf(stderr, format, args)
 #define PRINTD5(level, format, args...) do {} while(0)
 #endif
 
+
 bitmap_color_t g_colors[] =
 {
 	/*            aarrggbb                           */
@@ -171,7 +172,37 @@ static uint16_t bitmap_bgra_to_bgr565(uint32_t pixel)
 	b = round((double)BGRA_BLUE(pixel) *
 		  (double)MAX_RB5 / (double)MAX_RGBA);
 #endif
-	return BGR656_PIXEL(r, g, b, a);
+	return BGR565_PIXEL(r, g, b);
+}
+
+static uint32_t bitmap_bgra_to_bpc(uint32_t pixel, uint32_t bpc)
+{
+	uint8_t r, g, b, a;
+	uint32_t mask = (0xffffffff << (8-bpc)) ;
+
+	r = BGRA_RED(pixel) & mask;
+	g = BGRA_GREEN(pixel) & mask;
+	b = BGRA_BLUE(pixel) & mask;
+	a = BGRA_ALPHA(pixel);
+
+#if 0
+	/* fixup lower bits */
+	if (bpc == 6) {
+		if (BGRA_RED(pixel) & 0x4)
+			r |= 0x1;
+		if (BGRA_GREEN(pixel) & 0x4)
+			g |= 0x1;
+		if (BGRA_BLUE(pixel) & 0x4)
+			b |= 0x1;
+		if (BGRA_RED(pixel) & 0x8)
+			r |= 0x2;
+		if (BGRA_GREEN(pixel) & 0x8)
+			g |= 0x2;
+		if (BGRA_BLUE(pixel) & 0x8)
+			b |= 0x2;
+	}
+#endif
+	return BGRA_PIXEL(r, g, b, a);
 }
 
 static int bitmap_bgra_to_yuva(uint32_t pixel,
@@ -237,6 +268,12 @@ void bitmap_set_debug(bitmap_t *bm, int level)
 	bm->debug = level;
 }
 
+void bitmap_set_stuckbits(bitmap_t *bm, uint32_t zero, uint32_t one)
+{
+	bm->zero = zero;
+	bm->one = one;
+}
+
 uint32_t bitmap_set_alpha(bitmap_t *bm, uint32_t color, double alpha)
 {
 	uint8_t r, g, b, a;
@@ -259,14 +296,15 @@ uint32_t bitmap_set_alpha(bitmap_t *bm, uint32_t color, double alpha)
 }
 
 int bitmap_create(bitmap_t *bm, int w, int h, int stride,
-		  int rotation, unsigned int format)
+		  int rotation, unsigned int format, unsigned int bpc)
 {
 	bm->w =  w;
 	bm->h =  h;
 	bm->stride = stride;
-	bm->rotation = rotation;;
+	bm->rotation = rotation;
 	bm->format = format;
 	bm->bpp = RGB_BUFFER_BYTES;
+	bm->bpc = bpc;
 
 	if (bm->w > bm->stride) {
 		bm->stride = bm->w;
@@ -1010,6 +1048,20 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 
 	s = bm->h * bm->stride;
 
+	/* force stuck ones and zeros */
+	if (bm->zero || bm->one) {
+		fprintf(stderr, "Forcing stuck bits!\n");
+		uint32_t *out =  (uint32_t *)bm->buffer;
+		for (i = 0;  i < s; i++) {
+			if (bm->zero) {
+				out[i] &= ~bm->zero;
+			}
+			if (bm->one) {
+				out[i] |= bm->one;
+			}
+		}
+	}
+
 	if (bm->format == FORMAT_BGR565) {
 		uint16_t *buffer_out =  (uint16_t *)bm->buffer;
 		fprintf(stderr,
@@ -1130,9 +1182,18 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 		}
 	} else if (bm->format ==  FORMAT_BGRA8888) {
 		bm->planes = 1;
-		fprintf(stderr,
-			"Converting to output FORMAT_BGRA8888 (bgra)\n");
+		if (bm->bpc < 8) {
+			uint32_t *out =  (uint32_t *)bm->buffer;
+			fprintf(stderr,
+				"Converting to output FORMAT_BGRA8888 (bgra) %d pits per pixel\n",
+				bm->bpc);
+			for (i = 0;  i < s; i++) {
+				out[i] = bitmap_bgra_to_bpc(bm->buffer[i], bm->bpc);
+			}
+		} else
 		/* do nothing */
+			fprintf(stderr,
+				"Converting to output FORMAT_BGRA8888 (bgra)\n");
 	} else {
 		fprintf(stderr, "Unsupported output format %c%c%c%c\n",
 			(unsigned char)bm->format >> 24,

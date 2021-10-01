@@ -290,6 +290,24 @@ time ./patgen.exe -v -pattern wheel      -border -header -footer -vsize $RES -pi
 time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 time ./patgen.exe -v -pattern colorcheck -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
 
+TEST=test18
+RES=1920x1200
+FMT=rgb565le
+
+time ./patgen.exe -v -pattern checker -size 2    -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern circle     -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorbar   -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorbar2  -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern fill       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern graybar    -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern gradient   -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern vgradient  -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern hsv        -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern wheel      -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+time ./patgen.exe -v -pattern colorcheck -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+
 
 CONTAINER_FMT=bmp
 
@@ -311,8 +329,7 @@ done
 echo "-----------------------------------------------------------"
 
 
-
-TEST=test17
+TEST=test19
 RES=8192x8192
 FMT=yuva444
 
@@ -323,4 +340,6 @@ time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pi
 
 FMT=yuv422
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST"
+
+
 

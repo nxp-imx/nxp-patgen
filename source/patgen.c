@@ -63,7 +63,9 @@ typedef struct param_s {
 	int grid;
 	int border;
 
-	long color;
+	unsigned long color;
+	unsigned long zero;
+	unsigned long one;
 	uint32_t pixel;
 
 	char size[MAX_PREFIX];
@@ -74,6 +76,7 @@ typedef struct param_s {
 	char extension[16];
 	char outformat[MAX_PREFIX];
 	unsigned int o_fourcc;
+	unsigned int bpc;
 
 	/* char in[MAX_PATH]; */
 	/* FILE *fin;*/
@@ -109,7 +112,10 @@ static const char help[] =
 	"\t-border\n\t\tAdds a border to the patern\n\n"
 	"\t-header\n\t\tAdds header text to the pattern border\n\n"
 	"\t-footer\n\t\tAdds footer text to the pattern border\n\n"
+	"\t-0 -[stuck zero 0xaarrbbgg]\n"
+	"\t-1 -[stuck one 0xaarrbbgg]\n"
 	"\t-a -alpha [alpha (%%)]\n\t\tSets the alpha value. Default is 100.0%%\n\n"
+	"\t-b -bits per color [bits per color 1-8]\n"
 	"\t-c -[RGB color in hex 0xaarrbbgg]\n"
 	"\t\tSets the color default for the fill and\n"
 	"\t\tgraybar patterns. Default is white.\n\n"
@@ -166,6 +172,7 @@ enum {
 static struct option long_options[] =
 {
 	{ "alpha",   required_argument,       0, 'a' },
+	{ "bpc",     required_argument,       0, 'b' },
 	{ "color",   required_argument,       0, 'c' },
 	{ "debug",   required_argument,       0, 'd' },
 	{ "help",    no_argument,             0, 'h' },
@@ -174,6 +181,8 @@ static struct option long_options[] =
 	{ "pattern", required_argument,       0, 'p' },
 	{ "rotation", required_argument,      0, 'r' },
 	{ "verbose", no_argument,             0, 'v' },
+	{ "one",     required_argument,       0, '1' },
+	{ "zero",    required_argument,       0, '0' },
 	{ "border",  no_argument,             0, OPT_BORDER },
 	{ "footer",  no_argument,             0, OPT_FOOTER },
 	{ "grid",    no_argument,             0, OPT_GRID },
@@ -206,7 +215,7 @@ static int command_parse(int argc, char **argv, param_t *p)
 		/* getopt_long stores the option index here. */
 		int option_index = 0;
 
-		c = getopt_long_only(argc, argv, "a:c:d:hi:o:p:r:v",
+		c = getopt_long_only(argc, argv, "a:b:c:d:hi:o:p:r:v1:0:",
 				     long_options, &option_index);
 		if (p->verbose)
 			fprintf(stderr, "c %d, option_index %d\n",
@@ -223,6 +232,12 @@ static int command_parse(int argc, char **argv, param_t *p)
 				fprintf(stderr, "-a alpha =     %-3.3f\n",
 					p->alpha);
 			break;
+		case 'b':
+			p->bpc = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-b bits per color = %d\n",
+					p->bpc);
+			break;
 		case OPT_BORDER:
 			p->border = 1;
 			if (p->verbose)
@@ -234,6 +249,19 @@ static int command_parse(int argc, char **argv, param_t *p)
 			if (p->verbose)
 				fprintf(stderr, "-c -color =     0x%08lx\n",
 					p->color);
+			break;
+		case '0':
+			p->zero = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-0 -zero =     0x%08lx\n",
+					p->zero);
+			break;
+
+		case '1':
+			p->color = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-1 -one =     0x%08lx\n",
+					p->one);
 			break;
 		case 'd':
 #ifndef DEBUG
@@ -413,6 +441,8 @@ static void set_params(param_t *p)
 
 	bitmap_get_color(&p->bm, "white", &c);
 	p->color = c;
+	p->zero = 0;
+	p->one = 0;
 	p->pixel = p->color;
 	p->w = DEFAULT_WIDTH;
 	p->h = DEFAULT_HEIGHT;
@@ -431,6 +461,7 @@ static void set_params(param_t *p)
 	p->min_intensity = 0.0;
 	p->max_intensity = 100.0;
 	p->alpha = 100.0;
+	p->bpc = 8;
 	p->o_fourcc = FORMAT_BGRA8888; /* bgra */
 	strcpy(p->pattern, DEFAULT_PATTERN);
 	strcpy(p->outformat, DEFAULT_OUTPUT_FORMAT);
@@ -1648,13 +1679,15 @@ int main(int argc, char **argv)
 		show_params(&param);
 
 	if (bitmap_create(&param.bm, param.w, param.h,
-			  param.stride, param.rotation, param.o_fourcc)) {
+			  param.stride, param.rotation,
+			  param.o_fourcc, param.bpc)) {
 		fprintf(stderr, "Failed top create a bitmap\n");
 		return 1;
 	}
 
 	bitmap_set_debug(&param.bm, param.debug);
-
+	bitmap_set_stuckbits(&param.bm, param.zero, param.one);
+	
 	fprintf(stderr, DEFAULT_SEPARATOR_STRING);
 	fprintf(stderr, "Generating %s pattern w %lu h %lu\n",
 		param.pattern, param.w, param.h);

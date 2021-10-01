@@ -19,6 +19,7 @@ typedef struct bitmap_s {
 	uint32_t stride;
 	uint32_t rotation;
 	uint32_t format;
+	uint32_t bpc;
 	uint32_t bpp;
 	uint32_t planes;
 	uint32_t h_sub;
@@ -28,6 +29,8 @@ typedef struct bitmap_s {
 	uint8_t *buffer_chroma;
 	uint8_t *buffer_alpha;
 	//uint32_t *lines;
+	uint32_t zero;
+	uint32_t one;
 
 	double   alpha;
 	double   intensity;
@@ -94,10 +97,10 @@ typedef struct bitmap_color_s {
 /* 10-10-10-2*/
 #define BGRA10_PIXEL(r,g,b,a) \
 (((a & MAX_A2) << 30) |  ((r & MAX_RGB10) <<20) | \
-((g & MAX_RGB1) << 10) | (b & MAX_RGB10))
+((g & MAX_RGB10) << 10) | (b & MAX_RGB10))
 
 /* 5-6-5*/
-#define BGR656_PIXEL(r,g,b,a) \
+#define BGR565_PIXEL(r,g,b) \
 (((r & 0x1f)<<11) |  ((g&0x3f)<<5) | (b&0x1f)<<0)
 
 #define AVUY_PIXEL(y,u,v,a) \
@@ -144,10 +147,11 @@ typedef struct {
 } point;
 
 int bitmap_create(bitmap_t *bm, int w, int h, int stride,
-		  int rotation, unsigned int format);
+		  int rotation, unsigned int format, unsigned int bpc);
 int bitmap_destroy(bitmap_t *bm);
 void bitmap_dump(bitmap_t *bm);
 void bitmap_set_debug(bitmap_t *bm, int level);
+void bitmap_set_stuckbits(bitmap_t *bm, uint32_t zero, uint32_t one);
 int bitmap_is_yuv(unsigned int f);
 
 uint32_t bitmap_get_color(bitmap_t *bm, char *name, uint32_t *color);
