@@ -1470,12 +1470,12 @@ static int generate_test_gradients(param_t *param,
 				   int orientation)
 {
 	int i, t, b, l, r, s1, s2;
-
+	const int colors_per_gradient = 6;
 	if (orientation == 0) {
 		b = y1;
 		l = x0;
 		r = x1;
-		s1 = (y1 - y0) / 4;
+		s1 = (y1 - y0) / (numcolors / colors_per_gradient);
 		t = b - s1;
 		s2 = 0;
 	} else {
@@ -1483,12 +1483,12 @@ static int generate_test_gradients(param_t *param,
 		b = y1;
 		l = x0;
 		r = x1;
-		s2 = (x1 - x0) / 4;
+		s2 = (x1 - x0) / (numcolors / colors_per_gradient);
 		l = r - s2;
 		t = y0;
 	}
 
-	for (i = 0; i < numcolors; i += 6) {
+	for (i = 0; i < numcolors; i += colors_per_gradient) {
 		bitmap_gradient(&param->bm,
 				l, t,
 				r, b,
@@ -1643,6 +1643,19 @@ static int generate_hsv(param_t *param, int m)
 	return 0;
 }
 
+#define NUM_GRADIENT_COLORS_ALL (8*6)
+static int gradient_colors[NUM_GRADIENT_COLORS_ALL] =
+{
+	255, 255, 255, 0, 0, 0,
+	0, 0, 255, 0, 0, 0,
+	0, 255, 0, 0, 0, 0,
+	255, 0, 0, 0, 0, 0,
+	255, 255, 255, 0, 0, 0,
+	0, 255, 255, 0, 0, 0,
+	255, 255, 0, 0, 0, 0,
+	255, 0, 255, 0, 0, 0,
+};
+
 static int generate_gradient(param_t *param, int orientation, int m)
 {
 	int t, b, l, r;
@@ -1655,8 +1668,8 @@ static int generate_gradient(param_t *param, int orientation, int m)
 	generate_test_gradients(param,
 				l, t,
 				r, b,
-				gradient_primary_colors,
-				NUM_GRADIENT_COLORS,
+				gradient_colors,
+				NUM_GRADIENT_COLORS_ALL,
 				orientation);
 	return 0;
 }
