@@ -920,7 +920,7 @@ int bitmap_is_yuv(unsigned int f)
 	case FORMAT_NV12:
 	case FORMAT_YUV444:
 	case FORMAT_YUVA444:
-	case FORMAT_YUV422:
+	case FORMAT_YUYV422:
 		return TRUE;
 	default:
 		return FALSE;
@@ -932,7 +932,7 @@ static int get_vertical_sub(unsigned int f)
 	switch (f) {
 	case FORMAT_YUV444:
 	case FORMAT_YUVA444:
-	case FORMAT_YUV422:
+	case FORMAT_YUYV422:
 	case FORMAT_YUV444P:
 		return 1;
 	case FORMAT_YUV420:
@@ -952,7 +952,7 @@ static int get_horizontal_sub(unsigned int f)
 		return 1;
 	case FORMAT_YUV420:
 	case FORMAT_NV12:
-	case FORMAT_YUV422:
+	case FORMAT_YUYV422:
 		return 2;
 	default:
 		return 1;
@@ -969,7 +969,7 @@ static int get_planes(unsigned int f)
 		return 2;
 	case FORMAT_YUV444:
 	case FORMAT_YUVA444:
-	case FORMAT_YUV422:
+	case FORMAT_YUYV422:
 		return 1;
 	default:
 		return 1;
@@ -979,7 +979,7 @@ static int get_planes(unsigned int f)
 static int is_yuv_subsampled(unsigned int f)
 {
 	switch (f) {
-	case FORMAT_YUV422:
+	case FORMAT_YUYV422:
 	case FORMAT_YUV420:
 	case FORMAT_NV12:
 		return TRUE;
@@ -1071,7 +1071,7 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 		}
 		bm->bpp = 2;
 		bm->planes = 1;
-	} else if (bm->format == FORMAT_YUV422) {
+	} else if (bm->format == FORMAT_YUYV422) {
 		uint32_t *buffer_out =  (uint32_t *)bm->buffer;
 		fprintf(stderr,
 			"Converting to output FORMAT_YUV422 (yuv422)\n");

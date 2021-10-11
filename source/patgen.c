@@ -140,7 +140,7 @@ static const char help[] =
 	"\t\t\tyuv444p  24 bits per pixel YUV (3 planes Y, U and V)\n"
 	"\t\t\tyuva444  32 bits per pixel YUV (1 plane  Y, U, V, and A YUVA)\n"
 	"\t\t\tyuv444   24 bits per pixel YUV (1 plane  Y, U and V YUV)\n"
-	"\t\t\tyuv422   16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)\n"
+	"\t\t\tyuvy422  16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)\n"
 	"\t\t\tnv12     12 bits per pixel YUV (2 planes Y and UV)\n\n"
 	"\t-vs -vsize [HxW (pixelsxpixels] Sets the width and hight of the output\n\n"
 	"\t-r -rotation [rotation (degrees)] rotates the final image to 0, 90, 180, or 270\n\n"
@@ -515,8 +515,8 @@ static void update_params(param_t *p)
 	} else if (strncmp("yuv444", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_YUV444;
 		strcpy(p->extension, "yuv");
-	} else if (strncmp("yuv422", p->outformat, 8) == 0) {
-		p->o_fourcc = FORMAT_YUV422;
+	} else if (strncmp("yuyv422", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUYV422;
 		strcpy(p->extension, "yuv");
 	} else if (strncmp("nv12", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_NV12;
@@ -536,7 +536,7 @@ static void update_params(param_t *p)
 			"\tyuv444p\n"
 			"\tyuva444\n"
 			"\tyuv444\n"
-			"\tyuv422\n"
+			"\tyuyv422\n"
 			"\tnv12\n\n"
 		       );
 		exit(0);
@@ -1687,7 +1687,7 @@ int main(int argc, char **argv)
 
 	bitmap_set_debug(&param.bm, param.debug);
 	bitmap_set_stuckbits(&param.bm, param.zero, param.one);
-	
+
 	fprintf(stderr, DEFAULT_SEPARATOR_STRING);
 	fprintf(stderr, "Generating %s pattern w %lu h %lu\n",
 		param.pattern, param.w, param.h);
