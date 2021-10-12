@@ -70,13 +70,16 @@ clean:
 	rm -fv $(OBJ) $(EXE)  $(EXE).debug
 #	echo CCFLAGS $(CCFLAGS)
 
-test-quality: all
+yuv-diff.exe:
+	gcc yuvdiff.c -lm -o yuvdiff.exe
+
+test-quality: all yuv-diff.exe
 	mkdir -p ../patgen_test
 	time ../scripts/test-quality.sh ../patgen_test
 
 test-quick: all
 	mkdir -p ../patgen_test
-	time ../scripts/test-quick.sh ../patgen_tes
+	time ../scripts/test-quick.sh ../patgen_test
 
 test: all
 	mkdir -p ../patgen_test
