@@ -1505,6 +1505,43 @@ int bitmap_hsv_rectangle(bitmap_t *bm, int x0, int y0, int x1, int y1,
 	return 0;
 }
 
+int bitmap_16m_colors(bitmap_t *bm,
+		      int x0, int y0,
+		      int x1, int y1)
+{
+	uint32_t y, x, c=0, size;
+	const uint32_t min_size = 256*256*256;
+
+	//PRINTD2(bm->debug, "%s(): x0 %d y0 %d x1 %d y1 %d pixel 0x%08x\n",
+	//	__func__, x0, y0, x1, y1, pixel);
+	size = (x1 - x0) * (y1 - y0);
+
+	if (size < min_size) {
+		fprintf(stderr,
+			"%s() bitmap is too small %u. Needs to be %u pixels or larger\n",
+			__func__, size, min_size);
+	}
+	for (y = y0; y < y1; y++) {
+		for (x = 0; x < (x1 - x0); x++) {
+			bitmap_draw_pixel(bm, x + x0, y + y0, c);
+			c++;
+			if (c == size) {
+				return 0;
+			}
+
+			if (c == min_size) {
+				c = 0;
+			}
+		}
+	}
+	if ( c < min_size) {
+		fprintf(stderr,
+			"%s() bitmap is too small %u. Needs to be %u pixels or larger\n",
+			__func__, size, min_size);
+	}
+	return 0;
+}
+
 int bitmap_corners(bitmap_t *bm, int margin)
 {
 	uint32_t black = 0, white = 0xffffff;

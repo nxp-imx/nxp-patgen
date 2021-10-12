@@ -226,7 +226,10 @@ int bitmap_gradient(bitmap_t *bm,
 int bitmap_hsv_circle(bitmap_t *bm, int x0, int y0, int x1, int y1, double);
 int bitmap_hsv_rectangle(bitmap_t *bm, int x0, int y0, int x1, int y1,
 			 int margin, double val, double degrees);
-int bitmap_corners(bitmap_t *bm, int margin);
+int bitmap_16m_colors(bitmap_t * bm,
+		      int x0, int y0,
+		      int x1, int y1);
+int bitmap_corners(bitmap_t * bm, int margin);
 int bitmap_render_font(bitmap_t *bm,
 		       char *filename,
 		       char *text,

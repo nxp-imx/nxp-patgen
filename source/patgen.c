@@ -1643,6 +1643,23 @@ static int generate_hsv(param_t *param, int m)
 	return 0;
 }
 
+static int generate_16m_colors(param_t *param, int m)
+{
+	int t, b, l, r;
+
+	t = m;
+	l = m;
+	r = param->w - m;
+	b = param->h - m;
+
+	bitmap_hsv_rectangle(&param->bm, l, t, r, b,
+			     (b - t) / 16, param->intensity, 360.0);
+
+	bitmap_16m_colors(&param->bm, l, t, r, b);
+
+	return 0;
+}
+
 #define NUM_GRADIENT_COLORS_ALL (8*6)
 static int gradient_colors[NUM_GRADIENT_COLORS_ALL] =
 {
@@ -1735,6 +1752,8 @@ int main(int argc, char **argv)
 		ret = generate_wheel(&param, m);
 	else if (strncmp("hsv", param.pattern, 3) == 0)
 		ret = generate_hsv(&param, m);
+	else if (strncmp("16m_colors", param.pattern, 9) == 0)
+		ret = generate_16m_colors(&param, m);
 	else if (strncmp("font", param.pattern, 4) == 0)
 		ret = generate_font(&param, m);
 	else {
