@@ -209,24 +209,25 @@ static int bitmap_bgra_to_yuva(uint32_t pixel,
 			       uint8_t *y, uint8_t *u,
 			       uint8_t *v, uint8_t *a)
 {
-	double r, g, b;
-	const double coef[3][3] = {
-		{  65.738, 129.057,  25.064 },
-		{ -37.945, -74.494, 112.439 },
-		{ 112.439, -94.154, -18.285 },
+	int r, g, b, yt, ut, vt;
+	const int coef[3][3] = {
+		{  2153984,  16519*256, 821248 },
+		{ -1245440, -9528*256, 3684352 },
+		{  3684352, -12061*256,-596992 },
 	};
 
-	r = (double)BGRA_RED(pixel);
-	g = (double)BGRA_GREEN(pixel);
-	b = (double)BGRA_BLUE(pixel);
+	r = (int)BGRA_RED(pixel);
+	g = (int)BGRA_GREEN(pixel);
+	b = (int)BGRA_BLUE(pixel);
 
 	*a = BGRA_ALPHA(pixel);
 
-	/* Full range */
-
-	*y = ((coef[0][0] * r) + (coef[0][1] * g) + (coef[0][2] * b) + 128) / 256 + 16;
-	*u = ((coef[1][0] * r) + (coef[1][1] * g) + (coef[1][2] * b) + 128) / 256 + 128;
-	*v = ((coef[2][0] * r) + (coef[2][1] * g) + (coef[2][2] * b) + 128) / 256 + 128;
+	yt = ((coef[0][0] * r) + (coef[0][1] * g) + (coef[0][2] * b) +  134283264) >> 16;
+	*y = (yt + 64) >> 7;
+	ut = ((coef[1][0] * r) + (coef[1][1] * g) + (coef[1][2] * b) + 1073807360) >> 16;
+	*u = (ut + 64) >> 7;
+	vt = ((coef[2][0] * r) + (coef[2][1] * g) + (coef[2][2] * b) + 1073807360) >> 16;
+	*v = (vt + 64) >> 7;
 
 	return  0;
 }
