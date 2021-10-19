@@ -77,6 +77,8 @@ typedef struct param_s {
 	char outformat[MAX_PREFIX];
 	unsigned int o_fourcc;
 	unsigned int bpc;
+	unsigned int color_range;
+	unsigned int color_space;
 
 	/* char in[MAX_PATH]; */
 	/* FILE *fin;*/
@@ -117,8 +119,7 @@ static const char help[] =
 	"\t-a -alpha [alpha (%%)]\n\t\tSets the alpha value. Default is 100.0%%\n\n"
 	"\t-b -bits per color [bits per color 1-8]\n"
 	"\t-c -[RGB color in hex 0xaarrbbgg]\n"
-	"\t\tSets the color default for the fill and\n"
-	"\t\tgraybar patterns. Default is white.\n\n"
+	"\t\tSets the color default for the fill, colorbars and graybars\n"
 	"\t-i -intensity [intensity (%%)]\n"
 	"\t\tSets the color intensity for the colorbar, fill and\n"
 	"\t\thsv patterns. Default is 100.0%%\n\n"
@@ -126,6 +127,11 @@ static const char help[] =
 	"\t\tSets the minimum intensity for the graybar pattern. Default is 0.0%%\n\n"
 	"\t-max_i[maximum intensity (%%)]\n"
 	"\t\tSets the maximum intensity for the graybar pattern. Default is 100.0%%\n\n"
+	"\t\tgraybar patterns. Default is white.\n\n"
+	"\t-range - YUV color range\n"
+	"\t\tSets the color range 0/1 = limited/full\n"
+	"\t-space - YUV color space\n"
+	"\t\t 0 is bt.601\n"
 	"\t-steps [steps]\n"
 	"\t\tSets the number steps in the graybar pattern\n\n"
 	"\t-size  -checker_size [size (pixels)]\n"
@@ -140,6 +146,7 @@ static const char help[] =
 	"\t\t\tyuv444p  24 bits per pixel YUV (3 planes Y, U and V)\n"
 	"\t\t\tyuva444  32 bits per pixel YUV (1 plane  Y, U, V, and A YUVA)\n"
 	"\t\t\tyuv444   24 bits per pixel YUV (1 plane  Y, U and V YUV)\n"
+	"\t\t\tyuvj444  24 bits per pixel YUV full color range (1 plane  Y, U and V YUV)\n"
 	"\t\t\tyuvy422  16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)\n"
 	"\t\t\tnv12     12 bits per pixel YUV (2 planes Y and UV)\n\n"
 	"\t-vs -vsize [HxW (pixelsxpixels] Sets the width and hight of the output\n\n"
@@ -166,7 +173,8 @@ enum {
 	OPT_SIZE,
 	OPT_GRID,
 	OPT_FB,
-
+	OPT_COLOR_RANGE,
+	OPT_COLOR_SPACE,
 };
 
 static struct option long_options[] =
@@ -196,6 +204,8 @@ static struct option long_options[] =
 	{ "stride",  required_argument,       0, OPT_STRIDE /*'s'*/ },
 	{ "pix_fmt", required_argument,       0, OPT_PIX_FMT },
 	{ "fb",      required_argument,       0, OPT_FB },
+	{ "range",  required_argument,        0, OPT_COLOR_RANGE },
+	{ "space",  required_argument,        0, OPT_COLOR_SPACE },
 	{ 0, 0, 0, 0 }
 };
 
@@ -250,13 +260,24 @@ static int command_parse(int argc, char **argv, param_t *p)
 				fprintf(stderr, "-c -color =     0x%08lx\n",
 					p->color);
 			break;
+		case OPT_COLOR_RANGE:
+			p->color_range = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-range =     %d\n",
+					p->color_range);
+			break;
+		case OPT_COLOR_SPACE:
+			p->color_space = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-space =     %d\n",
+					p->color_range);
+			break;
 		case '0':
 			p->zero = strtoul(optarg, NULL, 0);
 			if (p->verbose)
 				fprintf(stderr, "-0 -zero =     0x%08lx\n",
 					p->zero);
 			break;
-
 		case '1':
 			p->color = strtoul(optarg, NULL, 0);
 			if (p->verbose)
@@ -276,7 +297,6 @@ static int command_parse(int argc, char **argv, param_t *p)
 			if (p->verbose)
 				fprintf(stderr, "-d -debug =     %d\n",
 					p->debug);
-
 			break;
 		case OPT_FOOTER:
 			p->footer = 1;
@@ -384,7 +404,6 @@ static int command_parse(int argc, char **argv, param_t *p)
 				fprintf(stderr, "-pix_fmt =      %s\n",
 					p->outformat);
 			break;
-
 		case '?':
 			break;
 		default:
@@ -441,6 +460,8 @@ static void set_params(param_t *p)
 
 	bitmap_get_color(&p->bm, "white", &c);
 	p->color = c;
+	p->color_space = 0;
+	p->color_range = 0;
 	p->zero = 0;
 	p->one = 0;
 	p->pixel = p->color;
@@ -504,6 +525,9 @@ static void update_params(param_t *p)
 	if (p->stride < p->w)
 		p->stride = p->w;
 
+	bitmap_set_color_range(&p->bm, p->color_range);
+	bitmap_set_color_space(&p->bm, p->color_space);
+
 	if (strncmp("rgb565le", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_BGR565;
 	} else if (strncmp("yuv444p", p->outformat, 8) == 0) {
@@ -514,6 +538,10 @@ static void update_params(param_t *p)
 		strcpy(p->extension, "yuv");
 	} else if (strncmp("yuv444", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_YUV444;
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("yuvj444p", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUV444P;
+		bitmap_set_color_range(&p->bm, TRUE);
 		strcpy(p->extension, "yuv");
 	} else if (strncmp("yuyv422", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_YUYV422;
@@ -534,11 +562,12 @@ static void update_params(param_t *p)
 			"\trgb565le\n"
 			"\tyuv420p\n"
 			"\tyuv444p\n"
+			"\tyuvj444p\n"
 			"\tyuva444\n"
 			"\tyuv444\n"
 			"\tyuyv422\n"
 			"\tnv12\n\n"
-		       );
+			);
 		exit(0);
 	}
 	/* default is bgra */
