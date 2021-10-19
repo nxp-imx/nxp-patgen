@@ -101,37 +101,33 @@ static const char help[] =
 	"\t\tgraybar\t\t11 shaded bars, the default is white bars from\n"
 	"\t\t\t\t100%% to 0%%. The -color, -steps, -min_i, and max_i\n"
 	"\t\t\t\tparameters can be used with this pattern.\n"
-	"\t\tgradient\tCreates four horizontal gradient bars red,\n"
-	"\t\t\t\tgreen , blue and white.\n\n"
-	"\t\tvgradient\tCreates four vertical gradient bars red, green,\n"
-	"\t\t\t\tblue, and white.\n"
+	"\t\tgradient\tCreates eight horizontal gradient bars: magenta, yellow,\n"
+	"\t\t\t\tcyan, white, red, green, blue and white.\n"
+	"\t\tvgradient\tCreates eight four vertical gradient bars: magenta, yellow,\n"
+	"\t\t\t\tcyan, white, red, green, blue, and white.\n"
 	"\t\thsv\t\tCreates an HSV color transtion gradient. The\n"
 	"\t\t\t\t-i sets the V (value) for HSV.\n"
 	"\t\tshapes\t\tDraw test shapes with a background fill\n"
-	"\t\ttest\t\tCreates a testcard like pattern.\n\n"
+	"\t\tlogo\t\tDraw an NXP logo\n"
+	"\t\ttest\t\tCreates a testcard like pattern.\n"
 	"\t\twheel\tCreates an HSV color wheel. The -i sets the V\n"
 	"\t\t\t(value) for HSV.\n\n"
 	"\t-border\n\t\tAdds a border to the patern\n\n"
 	"\t-header\n\t\tAdds header text to the pattern border\n\n"
 	"\t-footer\n\t\tAdds footer text to the pattern border\n\n"
-	"\t-0 -[stuck zero 0xaarrbbgg]\n"
-	"\t-1 -[stuck one 0xaarrbbgg]\n"
+	"\t-0 -[stuck zero 0xaarrbbgg]\n\n"
+	"\t-1 -[stuck one 0xaarrbbgg]\n\n"
 	"\t-a -alpha [alpha (%%)]\n\t\tSets the alpha value. Default is 100.0%%\n\n"
-	"\t-b -bits per color [bits per color 1-8]\n"
+	"\t-b -bits per color [bits per color 1-8]\n\n"
 	"\t-c -[RGB color in hex 0xaarrbbgg]\n"
-	"\t\tSets the color default for the fill, colorbars and graybars\n"
+	"\t\tSets the color default for the fill and graybars\n\n"
 	"\t-i -intensity [intensity (%%)]\n"
-	"\t\tSets the color intensity for the colorbar, fill and\n"
-	"\t\thsv patterns. Default is 100.0%%\n\n"
+	"\t\tSets the color intensity for the colorbar, fill, graybars,\n"
+	"\t\tand hsv patterns. Default is 100.0%%\n\n"
 	"\t-min_i [minimum intensity (%%)] \n"
 	"\t\tSets the minimum intensity for the graybar pattern. Default is 0.0%%\n\n"
 	"\t-max_i[maximum intensity (%%)]\n"
 	"\t\tSets the maximum intensity for the graybar pattern. Default is 100.0%%\n\n"
-	"\t\tgraybar patterns. Default is white.\n\n"
-	"\t-range - YUV color range\n"
-	"\t\tSets the color range 0/1 = limited/full\n"
-	"\t-space - YUV color space\n"
-	"\t\t 0 is bt.601\n"
 	"\t-steps [steps]\n"
 	"\t\tSets the number steps in the graybar pattern\n\n"
 	"\t-size  -checker_size [size (pixels)]\n"
@@ -146,10 +142,14 @@ static const char help[] =
 	"\t\t\tyuv444p  24 bits per pixel YUV (3 planes Y, U and V)\n"
 	"\t\t\tyuva444  32 bits per pixel YUV (1 plane  Y, U, V, and A YUVA)\n"
 	"\t\t\tyuv444   24 bits per pixel YUV (1 plane  Y, U and V YUV)\n"
-	"\t\t\tyuvj444  24 bits per pixel YUV full color range (1 plane  Y, U and V YUV)\n"
+	"\t\t\tyuvj444p 24 bits per pixel YUV full color range (1 plane  Y, U and V YUV)\n"
 	"\t\t\tyuvy422  16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)\n"
 	"\t\t\tnv12     12 bits per pixel YUV (2 planes Y and UV)\n\n"
-	"\t-vs -vsize [HxW (pixelsxpixels] Sets the width and hight of the output\n\n"
+	"\t-range - YUV color range\n"
+	"\t\tSets the color range 0/1 = limited/full\n\n"
+	"\t-space - YUV color space\n"
+	"\t\t 0 is bt.601\n\n"
+	"\t-vs -vsize [WxH (pixelsXlines)] Sets the width and hight of the output\n\n"
 	"\t-r -rotation [rotation (degrees)] rotates the final image to 0, 90, 180, or 270\n\n"
 	"\t-stride [stride (pixels)] Sets the stride if it is larger the the width\n\n"
 	"\t-fb [frame buffer device] Name of the framebuffer device file\n\n"
@@ -204,8 +204,8 @@ static struct option long_options[] =
 	{ "stride",  required_argument,       0, OPT_STRIDE /*'s'*/ },
 	{ "pix_fmt", required_argument,       0, OPT_PIX_FMT },
 	{ "fb",      required_argument,       0, OPT_FB },
-	{ "range",  required_argument,        0, OPT_COLOR_RANGE },
-	{ "space",  required_argument,        0, OPT_COLOR_SPACE },
+	{ "range",   required_argument,       0, OPT_COLOR_RANGE },
+	{ "space",   required_argument,       0, OPT_COLOR_SPACE },
 	{ 0, 0, 0, 0 }
 };
 
@@ -554,7 +554,6 @@ static void update_params(param_t *p)
 		strcpy(p->extension, "yuv");
 	} else if (strncmp("bgra", p->outformat, 4) == 0) {
 		p->o_fourcc = FORMAT_BGRA8888;
-		strcpy(p->extension, "rgb");
 	} else {
 		fprintf(stderr,
 			"\nUnsupported format. Use one of the following:\n"
@@ -600,6 +599,8 @@ static void show_params(param_t *p)
 	fprintf(stderr, "header:                  %8d\n", p->header);
 	fprintf(stderr, "footer:                  %8d\n", p->footer);
 	fprintf(stderr, "border:                  %8d\n", p->border);
+	fprintf(stderr, "color_space:             %8d\n", p->color_space);
+	fprintf(stderr, "color_range:             %8d\n", p->color_range);
 	fprintf(stderr, "grid:                    %8d\n", p->grid);
 	fprintf(stderr, "size:                           %s\n", p->size);
 	fprintf(stderr, "pattern:                        %s\n", p->pattern);
@@ -1067,6 +1068,14 @@ static int generate_circle(param_t *param, int m)
 static int generate_nxp_logo(param_t *param, int m)
 {
 	int r, l, t, b, dx, dy;
+	const int min_w = 768, min_h = 512;
+
+	if ((param->h < min_h) || (param->w < min_w)) {
+		fprintf(stderr,
+			"Size is too small for logo pattern. Needs to be  > %d width and  > %d height.\n",
+			min_w, min_h);
+		return 0;
+	}
 
 	dx = 80;
 	dy = 40;
@@ -1164,6 +1173,14 @@ static int generate_shapes(param_t *param, int m)
 	int r, h, w, l, t, b, i = 0;
 	point poly[16];
 	uint32_t colors[16];
+	const int min_w = 1536, min_h = 1024;
+
+	if ((param->h < min_h) || (param->w < min_w)) {
+		fprintf(stderr,
+			"Size is too small for shapes pattern. Needs to be  > %d width and  > %d height.\n",
+			min_w, min_h);
+		return 0;
+	}
 
 	bitmap_get_color(&param->bm, "white",    &colors[i++]);
 	bitmap_get_color(&param->bm, "yellow",   &colors[i++]);
@@ -1178,7 +1195,6 @@ static int generate_shapes(param_t *param, int m)
 
 	fprintf(stderr, "Generating shapes\n");
 
-
 	l = m;
 	t = m;
 	r = param->w - m;
@@ -1187,13 +1203,9 @@ static int generate_shapes(param_t *param, int m)
 	h = b - t;
 
 	bitmap_fill_rectangle(&param->bm, l, t, r, b, param->pixel);
-	//radius = round(MIN(h, w) * 0.30);
-
-
 
 	l = w / 2 + m;
 	t = h / 2 + m;
-	//generate_test_circles(param, l, t, radius);
 
 	bitmap_draw_line2(&param->bm,
 			  100, 100, //int x0, int y0,
