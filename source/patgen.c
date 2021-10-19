@@ -63,7 +63,9 @@ typedef struct param_s {
 	int grid;
 	int border;
 
-	long color;
+	unsigned long color;
+	unsigned long zero;
+	unsigned long one;
 	uint32_t pixel;
 
 	char size[MAX_PREFIX];
@@ -74,6 +76,9 @@ typedef struct param_s {
 	char extension[16];
 	char outformat[MAX_PREFIX];
 	unsigned int o_fourcc;
+	unsigned int bpc;
+	unsigned int color_range;
+	unsigned int color_space;
 
 	/* char in[MAX_PATH]; */
 	/* FILE *fin;*/
@@ -96,25 +101,29 @@ static const char help[] =
 	"\t\tgraybar\t\t11 shaded bars, the default is white bars from\n"
 	"\t\t\t\t100%% to 0%%. The -color, -steps, -min_i, and max_i\n"
 	"\t\t\t\tparameters can be used with this pattern.\n"
-	"\t\tgradient\tCreates four horizontal gradient bars red,\n"
-	"\t\t\t\tgreen , blue and white.\n\n"
-	"\t\tvgradient\tCreates four vertical gradient bars red, green,\n"
-	"\t\t\t\tblue, and white.\n"
-	"\t\thsv\t\tCreates an HSV color transition gradient. The\n"
+	"\t\tgradient\tCreates eight horizontal gradient bars: magenta, yellow,\n"
+	"\t\t\t\tcyan, white, red, green, blue and white.\n"
+	"\t\tvgradient\tCreates eight four vertical gradient bars: magenta, yellow,\n"
+	"\t\t\t\tcyan, white, red, green, blue, and white.\n"
+	"\t\thsv\t\tCreates an HSV color transtion gradient. The\n"
 	"\t\t\t\t-i sets the V (value) for HSV.\n"
-	"\t\ttest\t\tCreates a testcard like pattern.\n\n"
+	"\t\tshapes\t\tDraw test shapes with a background fill\n"
+	"\t\tlogo\t\tDraw an NXP logo\n"
+	"\t\ttest\t\tCreates a testcard like pattern.\n"
 	"\t\twheel\tCreates an HSV color wheel. The -i sets the V\n"
 	"\t\t\t(value) for HSV.\n\n"
 	"\t-border\n\t\tAdds a border to the pattern\n\n"
 	"\t-header\n\t\tAdds header text to the pattern border\n\n"
 	"\t-footer\n\t\tAdds footer text to the pattern border\n\n"
+	"\t-0 -[stuck zero 0xaarrbbgg]\n\n"
+	"\t-1 -[stuck one 0xaarrbbgg]\n\n"
 	"\t-a -alpha [alpha (%%)]\n\t\tSets the alpha value. Default is 100.0%%\n\n"
+	"\t-b -bits per color [bits per color 1-8]\n\n"
 	"\t-c -[RGB color in hex 0xaarrbbgg]\n"
-	"\t\tSets the color default for the fill and\n"
-	"\t\tgraybar patterns. Default is white.\n\n"
+	"\t\tSets the color default for the fill and graybars\n\n"
 	"\t-i -intensity [intensity (%%)]\n"
-	"\t\tSets the color intensity for the colorbar, fill and\n"
-	"\t\thsv patterns. Default is 100.0%%\n\n"
+	"\t\tSets the color intensity for the colorbar, fill, graybars,\n"
+	"\t\tand hsv patterns. Default is 100.0%%\n\n"
 	"\t-min_i [minimum intensity (%%)] \n"
 	"\t\tSets the minimum intensity for the graybar pattern. Default is 0.0%%\n\n"
 	"\t-max_i[maximum intensity (%%)]\n"
@@ -129,10 +138,18 @@ static const char help[] =
 	"\t\tSupported formats are:\n"
 	"\t\t\tbgra     32 bits per pixel RGB\n"
 	"\t\t\trgb565le 16 bits per pixel RGB\n"
-	"\t\t\tyuv444p  24 bits per pixel YUV (3 planes Y, U and V)\n"
 	"\t\t\tyuv420p  12 bits per pixel YUV (3 planes Y, U and V)\n"
+	"\t\t\tyuv444p  24 bits per pixel YUV (3 planes Y, U and V)\n"
+	"\t\t\tyuva444  32 bits per pixel YUV (1 plane  Y, U, V, and A YUVA)\n"
+	"\t\t\tyuv444   24 bits per pixel YUV (1 plane  Y, U and V YUV)\n"
+	"\t\t\tyuvj444p 24 bits per pixel YUV full color range (1 plane  Y, U and V YUV)\n"
+	"\t\t\tyuvy422  16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)\n"
 	"\t\t\tnv12     12 bits per pixel YUV (2 planes Y and UV)\n\n"
-	"\t-vs -vsize [HxW (pixelsxpixels] Sets the width and hight of the output\n\n"
+	"\t-range - YUV color range\n"
+	"\t\tSets the color range 0/1 = limited/full\n\n"
+	"\t-space - YUV color space\n"
+	"\t\t 0 is bt.601\n\n"
+	"\t-vs -vsize [WxH (pixelsXlines)] Sets the width and hight of the output\n\n"
 	"\t-r -rotation [rotation (degrees)] rotates the final image to 0, 90, 180, or 270\n\n"
 	"\t-stride [stride (pixels)] Sets the stride if it is larger the width\n\n"
 	"\t-fb [frame buffer device] Name of the framebuffer device file\n\n"
@@ -156,12 +173,14 @@ enum {
 	OPT_SIZE,
 	OPT_GRID,
 	OPT_FB,
-
+	OPT_COLOR_RANGE,
+	OPT_COLOR_SPACE,
 };
 
 static struct option long_options[] =
 {
 	{ "alpha",   required_argument,       0, 'a' },
+	{ "bpc",     required_argument,       0, 'b' },
 	{ "color",   required_argument,       0, 'c' },
 	{ "debug",   required_argument,       0, 'd' },
 	{ "help",    no_argument,             0, 'h' },
@@ -170,6 +189,8 @@ static struct option long_options[] =
 	{ "pattern", required_argument,       0, 'p' },
 	{ "rotation", required_argument,      0, 'r' },
 	{ "verbose", no_argument,             0, 'v' },
+	{ "one",     required_argument,       0, '1' },
+	{ "zero",    required_argument,       0, '0' },
 	{ "border",  no_argument,             0, OPT_BORDER },
 	{ "footer",  no_argument,             0, OPT_FOOTER },
 	{ "grid",    no_argument,             0, OPT_GRID },
@@ -183,6 +204,8 @@ static struct option long_options[] =
 	{ "stride",  required_argument,       0, OPT_STRIDE /*'s'*/ },
 	{ "pix_fmt", required_argument,       0, OPT_PIX_FMT },
 	{ "fb",      required_argument,       0, OPT_FB },
+	{ "range",   required_argument,       0, OPT_COLOR_RANGE },
+	{ "space",   required_argument,       0, OPT_COLOR_SPACE },
 	{ 0, 0, 0, 0 }
 };
 
@@ -202,7 +225,7 @@ static int command_parse(int argc, char **argv, param_t *p)
 		/* getopt_long stores the option index here. */
 		int option_index = 0;
 
-		c = getopt_long_only(argc, argv, "a:c:d:hi:o:p:r:v",
+		c = getopt_long_only(argc, argv, "a:b:c:d:hi:o:p:r:v1:0:",
 				     long_options, &option_index);
 		if (p->verbose)
 			fprintf(stderr, "c %d, option_index %d\n",
@@ -219,6 +242,12 @@ static int command_parse(int argc, char **argv, param_t *p)
 				fprintf(stderr, "-a alpha =     %-3.3f\n",
 					p->alpha);
 			break;
+		case 'b':
+			p->bpc = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-b bits per color = %d\n",
+					p->bpc);
+			break;
 		case OPT_BORDER:
 			p->border = 1;
 			if (p->verbose)
@@ -230,6 +259,30 @@ static int command_parse(int argc, char **argv, param_t *p)
 			if (p->verbose)
 				fprintf(stderr, "-c -color =     0x%08lx\n",
 					p->color);
+			break;
+		case OPT_COLOR_RANGE:
+			p->color_range = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-range =     %d\n",
+					p->color_range);
+			break;
+		case OPT_COLOR_SPACE:
+			p->color_space = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-space =     %d\n",
+					p->color_range);
+			break;
+		case '0':
+			p->zero = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-0 -zero =     0x%08lx\n",
+					p->zero);
+			break;
+		case '1':
+			p->color = strtoul(optarg, NULL, 0);
+			if (p->verbose)
+				fprintf(stderr, "-1 -one =     0x%08lx\n",
+					p->one);
 			break;
 		case 'd':
 #ifndef DEBUG
@@ -244,7 +297,6 @@ static int command_parse(int argc, char **argv, param_t *p)
 			if (p->verbose)
 				fprintf(stderr, "-d -debug =     %d\n",
 					p->debug);
-
 			break;
 		case OPT_FOOTER:
 			p->footer = 1;
@@ -289,24 +341,24 @@ static int command_parse(int argc, char **argv, param_t *p)
 					"-steps = %lu\n", p->steps);
 			break;
 		case 'o':
-			strncpy(p->prefix, optarg, sizeof(p->prefix));
+			snprintf(p->prefix, sizeof(p->prefix), "%s", optarg);
 			if (p->verbose)
 				fprintf(stderr, "-o =   %s\n",
 					p->prefix);
 			break;
 		case OPT_FB:
-			strncpy(p->fb, optarg, sizeof(p->fb));
+			snprintf(p->fb, sizeof(p->fb), "%s", optarg);
 			if (p->verbose)
 				fprintf(stderr, "-fb =   %s\n", p->fb);
 			break;
 		case 'p':
-			strncpy(p->pattern, optarg, sizeof(p->pattern));
+			snprintf(p->pattern, sizeof(p->pattern), "%s", optarg);
 			if (p->verbose)
 				fprintf(stderr, "-p -pattern =   %s\n",
 					p->pattern);
 			break;
 		case OPT_VSIZE:
-			strncpy(p->size, optarg, sizeof(p->size));
+			snprintf(p->size, sizeof(p->size), "%s", optarg);
 			if (p->verbose)
 				fprintf(stderr, "-vs -video_size =   %s\n",
 					p->size);
@@ -347,12 +399,11 @@ static int command_parse(int argc, char **argv, param_t *p)
 					p->w);
 			break;
 		case OPT_PIX_FMT:
-			strncpy(p->outformat, optarg, sizeof(p->outformat));
+			snprintf(p->outformat, sizeof(p->outformat), "%s", optarg);
 			if (p->verbose)
 				fprintf(stderr, "-pix_fmt =      %s\n",
 					p->outformat);
 			break;
-
 		case '?':
 			break;
 		default:
@@ -409,6 +460,10 @@ static void set_params(param_t *p)
 
 	bitmap_get_color(&p->bm, "white", &c);
 	p->color = c;
+	p->color_space = 0;
+	p->color_range = 0;
+	p->zero = 0;
+	p->one = 0;
 	p->pixel = p->color;
 	p->w = DEFAULT_WIDTH;
 	p->h = DEFAULT_HEIGHT;
@@ -427,6 +482,7 @@ static void set_params(param_t *p)
 	p->min_intensity = 0.0;
 	p->max_intensity = 100.0;
 	p->alpha = 100.0;
+	p->bpc = 8;
 	p->o_fourcc = FORMAT_BGRA8888; /* bgra */
 	strcpy(p->pattern, DEFAULT_PATTERN);
 	strcpy(p->outformat, DEFAULT_OUTPUT_FORMAT);
@@ -469,10 +525,26 @@ static void update_params(param_t *p)
 	if (p->stride < p->w)
 		p->stride = p->w;
 
+	bitmap_set_color_range(&p->bm, p->color_range);
+	bitmap_set_color_space(&p->bm, p->color_space);
+
 	if (strncmp("rgb565le", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_BGR565;
 	} else if (strncmp("yuv444p", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUV444P;
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("yuva444", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUVA444;
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("yuv444", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_YUV444;
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("yuvj444p", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUV444P;
+		bitmap_set_color_range(&p->bm, TRUE);
+		strcpy(p->extension, "yuv");
+	} else if (strncmp("yuyv422", p->outformat, 8) == 0) {
+		p->o_fourcc = FORMAT_YUYV422;
 		strcpy(p->extension, "yuv");
 	} else if (strncmp("nv12", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_NV12;
@@ -482,7 +554,6 @@ static void update_params(param_t *p)
 		strcpy(p->extension, "yuv");
 	} else if (strncmp("bgra", p->outformat, 4) == 0) {
 		p->o_fourcc = FORMAT_BGRA8888;
-		strcpy(p->extension, "rgb");
 	} else {
 		fprintf(stderr,
 			"\nUnsupported format. Use one of the following:\n"
@@ -490,8 +561,12 @@ static void update_params(param_t *p)
 			"\trgb565le\n"
 			"\tyuv420p\n"
 			"\tyuv444p\n"
+			"\tyuvj444p\n"
+			"\tyuva444\n"
+			"\tyuv444\n"
+			"\tyuyv422\n"
 			"\tnv12\n\n"
-		       );
+			);
 		exit(0);
 	}
 	/* default is bgra */
@@ -524,6 +599,8 @@ static void show_params(param_t *p)
 	fprintf(stderr, "header:                  %8d\n", p->header);
 	fprintf(stderr, "footer:                  %8d\n", p->footer);
 	fprintf(stderr, "border:                  %8d\n", p->border);
+	fprintf(stderr, "color_space:             %8d\n", p->color_space);
+	fprintf(stderr, "color_range:             %8d\n", p->color_range);
 	fprintf(stderr, "grid:                    %8d\n", p->grid);
 	fprintf(stderr, "size:                           %s\n", p->size);
 	fprintf(stderr, "pattern:                        %s\n", p->pattern);
@@ -535,12 +612,14 @@ static void show_params(param_t *p)
 static int get_margin_size(param_t *param)
 {
 	int s = MIN(param->w, param->h);
+	if (s <= 480)
+		return 16;
 	if (s < 1080)
 		return 32;
-	else if (s <= 480)
-		return 16;
-	else
+	if (s < 4096)
 		return 64;
+	/* if s >= 4096 */
+	return 256;
 }
 
 static int generate_borders(param_t *param, int *margin, char *title)
@@ -600,9 +679,9 @@ static int generate_borders(param_t *param, int *margin, char *title)
 			bitmap_render_font(&param->bm,
 					   DEFAULT_HEADER_FONT_NAME,
 					   text,
-					   m / 2,
+					   m / 3,
 					   param->w / 2,
-					   m / 2 - 2,
+					   m / 2,
 					   bw[1]);
 		}
 	}
@@ -676,12 +755,16 @@ static int generate_test_circles(param_t *param, int x, int y, int r)
 	bitmap_get_color(&param->bm, "dark_gray", &gw[0]);
 	bitmap_get_color(&param->bm, "white", &gw[1]);
 
-	bitmap_draw_circle(&param->bm, x, y, r + 2, gw[0]);
-	bitmap_draw_circle(&param->bm, x, y, r + 1, gw[1]);
-	bitmap_draw_circle(&param->bm, x, y, r,     gw[1]);
-	bitmap_draw_circle(&param->bm, x, y, r - 1, gw[1]);
-	bitmap_draw_circle(&param->bm, x, y, r - 2, gw[0]);
-
+	/* todo use loop here */
+	if (r < 4096) {
+		bitmap_fill_circle2(&param->bm, x, y, r+2, r+3, gw[0]);
+		bitmap_fill_circle2(&param->bm, x, y, r-3, r-2, gw[0]);
+		bitmap_fill_circle2(&param->bm, x, y, r-2, r+2, gw[1]);
+	} else {
+		bitmap_fill_circle2(&param->bm, x, y, r+5, r+7, gw[0]);
+		bitmap_fill_circle2(&param->bm, x, y, r-7, r+5, gw[0]);
+		bitmap_fill_circle2(&param->bm, x, y, r-5, r+5, gw[1]);
+	}
 	return 0;
 }
 
@@ -712,7 +795,7 @@ static int generate_test_center(param_t *param,
 	bitmap_fill_rectangle(&param->bm, l + m, t + m, r - m, b - m, bw[0]);
 
 	snprintf(text, sizeof(text), "%ld x %ld",  param->w, param->h);
-	s = round(param->h * 0.1); /* font size */
+	s = round(MIN(param->w, param->h) * 0.1); /* font size */
 
 	bitmap_render_font(&param->bm,
 			   DEFAULT_BODY_FONT_NAME,
@@ -982,6 +1065,276 @@ static int generate_circle(param_t *param, int m)
 	return 0;
 }
 
+static int generate_nxp_logo(param_t *param, int m)
+{
+	int r, l, t, b, dx, dy;
+	const int min_w = 768, min_h = 512;
+
+	if ((param->h < min_h) || (param->w < min_w)) {
+		fprintf(stderr,
+			"Size is too small for logo pattern. Needs to be  > %d width and  > %d height.\n",
+			min_w, min_h);
+		return 0;
+	}
+
+	dx = 80;
+	dy = 40;
+
+	point s1[] = {
+		{dx +  65, dy + 142},
+		{dx + 130, dy + 142},
+		{dx + 240, dy + 270},
+		{dx + 240, dy + 142},
+		{dx + 304, dy + 142},//{304, 247},
+		{dx + 304, dy + 353},
+		{dx + 240, dy + 353},
+		{dx + 130, dy + 226},
+		{dx + 130, dy + 353},
+		{dx + 65,  dy + 353},
+	};
+	point s2[] = {
+		{dx + 241, dy + 142},
+		{dx + 304, dy + 142},
+		{dx + 304, dy + 246},
+	};
+	point s3[] = {
+		{dx + 304, dy + 246},
+		{dx + 304, dy + 353},
+		{dx + 240, dy + 353},
+	};
+
+	point s4[] = {
+		{dx + 304, dy + 142},
+		{dx + 316, dy + 142},
+		{dx + 361, dy + 212},
+		{dx + 405, dy + 142},
+		{dx + 416, dy + 142},//{304, 247},
+		{dx + 416, dy + 353},
+		{dx + 405, dy + 353},
+		{dx + 361, dy + 283},
+		{dx + 316, dy + 353},
+		{dx + 304, dy + 353},
+	};
+
+	point s5[] = {
+		{dx + 416, dy + 142},
+		{dx + 585, dy + 142},
+		{dx + 585, dy + 306},
+		{dx + 481, dy + 306},
+		{dx + 481, dy + 353},
+		{dx + 416, dy + 353},
+
+	};
+
+	point s6[] = {
+		{dx + 416, dy + 142},
+		{dx + 481, dy + 142},
+		{dx + 416, dy + 246},
+	};
+
+	point s7[] = {
+		{dx + 416, dy + 246},
+		{dx + 481, dy + 353},
+		{dx + 416, dy + 353},
+	};
+
+	fprintf(stderr, "Generating NXP logo\n");
+
+	l = m;
+	t = m;
+	r = param->w - m;
+	b = param->h - m;
+
+	bitmap_fill_rectangle(&param->bm, l, t, r, b, param->pixel);
+
+	bitmap_fill_polygon(&param->bm, s1, 10, 0xf9b500);
+	bitmap_fill_polygon(&param->bm, s2, 3, 0x958437);
+	bitmap_fill_polygon(&param->bm, s3, 3, 0x958437);
+	bitmap_fill_polygon(&param->bm, s4, 10, 0x7bb1da);
+
+	bitmap_fill_polygon(&param->bm, s5, 6, 0xc9d200);
+
+	bitmap_fill_circle(&param->bm, dx + 594, dy +198, 55, 0xc9d200);
+	bitmap_fill_circle(&param->bm, dx + 594, dy +252, 55, 0xc9d200);
+	bitmap_fill_rectangle(&param->bm, dx + 590, dy + 192, dx + 650, dy + 257,  0xc9d200);
+
+	bitmap_fill_rectangle(&param->bm, dx + 482, dy + 195, dx + 572, dy + 258,  0xffffff);
+	bitmap_fill_circle(&param->bm, dx + 572, dy + 223, 27, 0xffffff);
+	bitmap_fill_circle(&param->bm, dx + 572, dy + 230, 27, 0xffffff);
+
+	bitmap_fill_polygon(&param->bm, s6, 3, 0x739833);
+	bitmap_fill_polygon(&param->bm, s7, 3, 0x739833);
+
+	return 0;
+}
+
+static int generate_shapes(param_t *param, int m)
+{
+	int r, h, w, l, t, b, i = 0;
+	point poly[16];
+	uint32_t colors[16];
+	const int min_w = 1536, min_h = 1024;
+
+	if ((param->h < min_h) || (param->w < min_w)) {
+		fprintf(stderr,
+			"Size is too small for shapes pattern. Needs to be  > %d width and  > %d height.\n",
+			min_w, min_h);
+		return 0;
+	}
+
+	bitmap_get_color(&param->bm, "white",    &colors[i++]);
+	bitmap_get_color(&param->bm, "yellow",   &colors[i++]);
+	bitmap_get_color(&param->bm, "cyan",     &colors[i++]);
+	bitmap_get_color(&param->bm, "green",    &colors[i++]);
+	bitmap_get_color(&param->bm, "magenta",  &colors[i++]);
+	bitmap_get_color(&param->bm, "red",      &colors[i++]);
+	bitmap_get_color(&param->bm, "blue",     &colors[i++]);
+	bitmap_get_color(&param->bm, "black",    &colors[i++]);
+	//bitmap_get_color(&param->bm, "white",    &colors[i++]);
+	bitmap_get_color(&param->bm, "dark_gray",&colors[i++]);
+
+	fprintf(stderr, "Generating shapes\n");
+
+	l = m;
+	t = m;
+	r = param->w - m;
+	b = param->h - m;
+	w = r - l;
+	h = b - t;
+
+	bitmap_fill_rectangle(&param->bm, l, t, r, b, param->pixel);
+
+	l = w / 2 + m;
+	t = h / 2 + m;
+
+	bitmap_draw_line2(&param->bm,
+			  100, 100, //int x0, int y0,
+			  150, 300, //int x1, int y1,
+			  3,
+			  colors[1]);
+
+	bitmap_draw_line2(&param->bm,
+			  200, 100, //int x0, int y0,
+			  300, 200, //int x1, int y1,
+			  3,
+			  colors[1]);
+
+	bitmap_draw_line2(&param->bm,
+			  100, 200, //int x0, int y0,
+			  300, 220, //int x1, int y1,
+			  3,
+			  colors[2]);
+
+	bitmap_fill_circle2(&param->bm, 400, 300,
+			       30, 60, colors[3]);
+
+	bitmap_fill_circle2(&param->bm, 900, 500,
+			       50, 100, colors[4]);
+
+
+	/* roygbiv  from color checker */
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			 100, 120,
+			 DEG2RAD(0), DEG2RAD(180),
+			 0x00af363c);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			 120, 140,
+			 DEG2RAD(0), DEG2RAD(180),
+			 0x00d67e2c);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			 140, 160,
+			 DEG2RAD(0), DEG2RAD(180),
+			 0x00e7c71f);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			  160, 180,
+			  DEG2RAD(0), DEG2RAD(180),
+			  0x00469449);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			 180, 200,
+			 DEG2RAD(0), DEG2RAD(180),
+			 0x00627a9d);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			  200, 220,
+			  DEG2RAD(0), DEG2RAD(180),
+			  0x00505ba6);
+	bitmap_draw_arc(&param->bm, 1200, 300,
+			  220, 240,
+			  DEG2RAD(0), DEG2RAD(180),
+			  0x00383d96);
+	poly[0].x = 100;
+	poly[0].y = 800;
+	poly[1].x = 150;
+	poly[1].y = 800;
+	poly[2].x = 100;
+	poly[2].y = 900;
+	bitmap_fill_polygon(&param->bm, poly, 3, colors[5]);
+
+	poly[0].x = 200;
+	poly[0].y = 800;
+	poly[1].x = 300;
+	poly[1].y = 800;
+	poly[2].x = 300;
+	poly[2].y = 900;
+	poly[3].x = 200;
+	poly[3].y = 900;
+	bitmap_fill_polygon(&param->bm, poly, 4, colors[6]);
+
+	poly[0].x = 400;
+	poly[0].y = 800;
+	poly[1].x = 450;
+	poly[1].y = 750;
+	poly[2].x = 500;
+	poly[2].y = 800;
+	poly[3].x = 500;
+	poly[3].y = 900;
+	poly[4].x = 400;
+	poly[4].y = 900;
+	bitmap_fill_polygon(&param->bm, poly, 5, colors[7]);
+
+	poly[0].x = 600;
+	poly[0].y = 800;
+	poly[1].x = 650;
+	poly[1].y = 750;
+	poly[2].x = 700;
+	poly[2].y = 800;
+	poly[3].x = 700;
+	poly[3].y = 900;
+	poly[4].x = 650;
+	poly[4].y = 950;
+	poly[5].x = 600;
+	poly[5].y = 900;
+
+	bitmap_fill_polygon(&param->bm, poly, 6, colors[8]);
+
+	poly[0].x = 800;
+	poly[0].y = 800;
+
+	poly[1].x = 825;
+	poly[1].y = 700;
+
+	poly[2].x = 850;
+	poly[2].y = 800;
+
+	poly[3].x = 950;
+	poly[3].y = 825;
+
+	poly[4].x = 850;
+	poly[4].y = 850;
+
+	poly[5].x = 825;
+	poly[5].y = 950;
+
+	poly[6].x = 800;
+	poly[6].y = 850;
+
+	poly[7].x = 700;
+	poly[7].y = 825;
+
+	bitmap_fill_polygon(&param->bm, poly, 8, colors[4]);
+
+	return 0;
+}
+
 static int generate_checkerboard(param_t *param, int m)
 {
 	uint32_t bw[2];
@@ -1006,7 +1359,6 @@ static int generate_color_legend(param_t *param,
 {
 	uint32_t colors[7];
 	char text[] = "RGBCYM";
-
 	int i = 0, j, x, y, l, num;
 
 	bitmap_get_color(&param->bm, "red", &colors[i++]);
@@ -1047,8 +1399,8 @@ static int generate_font(param_t *param, int m)
 	uint32_t color;
 	int i, x, y, s;
 	char text[80];
-	const int sizes[] = { 240, 480, 720, 1080, 2160 };
-	const int margin_sizes[] = { 16, 32, 64 };
+	const int sizes[] = { 240, 480, 720, 1080, 2160, 4096, 8192};
+	const int margin_sizes[] = { 16, 32, 64, 128, 256};
 
 	fprintf(stderr, "Generating font test\n");
 	generate_fill(param, m);
@@ -1056,22 +1408,22 @@ static int generate_font(param_t *param, int m)
 		m = get_margin_size(param);
 	}
 
+	fprintf(stderr, "Generating color legend\n");
 	y = param->h * 3 / 4;
-	x = param->w / 8;
-
+	x =  m * 2;
 	for (i = 0; i < sizeof(sizes) / sizeof(sizes[0]); i++) {
 		if (sizes[i] > MIN(param->h, param->w)) {
 			break;
 		}
 		s =  round((double)(sizes[i]) * 0.08);
 		generate_color_legend(param, s, x, y);
-		x +=  (s / 2 + param->w / 16) * (i + 1);
+		x =  ((m * 2) + sizes[i]);
 	}
 
-	x = param->w / 8 + m;
-	y = param->h / 16 + m;
+	fprintf(stderr, "Generating header fonts\n");
+	x = param->w / 2;
+	y = m * 2;
 	bitmap_get_color(&param->bm, "black", &color);
-
 	for (i = 0; i < sizeof(margin_sizes) /
 	     sizeof(margin_sizes[0]); i++) {
 		if (sizes[i] > MIN(param->h, param->w)) {
@@ -1083,27 +1435,25 @@ static int generate_font(param_t *param, int m)
 		bitmap_render_font(&param->bm, DEFAULT_HEADER_FONT_NAME,
 				   text,
 				   margin_sizes[i] / 2, x, y, color);
-
 	}
 
+	fprintf(stderr, "Generating body fonts\n");
 	x = param->w / 2;
-	y = param->h / 8 + m * 2;
+	y = (param->h / 4) + (m * 2);
 	bitmap_get_color(&param->bm, "black", &color);
-
 	for (i = 0; i < sizeof(sizes) /
 	     sizeof(sizes[0]); i++) {
 		if (sizes[i] > MIN(param->h, param->w)) {
 			break;
 		}
 		s = round((double)sizes[i] * 0.1);
-		sprintf(text, "Body : %d (%dP)",
+		sprintf(text, "Body :   %d   (%dP)",
 			s, sizes[i]);
 
 		bitmap_render_font(&param->bm, DEFAULT_BODY_FONT_NAME,
 				   text,
 				   s, x, y, color);
 		y += s + s / 2;
-
 	}
 
 	return 0;
@@ -1119,7 +1469,6 @@ static int generate_grid(param_t *param)
 	}
 
 	fprintf(stderr, "Generating grid\n");
-
 	bitmap_get_color(&param->bm, "magenta", &bw[0]);
 	bitmap_get_color(&param->bm, "blue", &bw[1]);
 
@@ -1162,12 +1511,12 @@ static int generate_test_gradients(param_t *param,
 				   int orientation)
 {
 	int i, t, b, l, r, s1, s2;
-
+	const int colors_per_gradient = 6;
 	if (orientation == 0) {
 		b = y1;
 		l = x0;
 		r = x1;
-		s1 = (y1 - y0) / 4;
+		s1 = (y1 - y0) / (numcolors / colors_per_gradient);
 		t = b - s1;
 		s2 = 0;
 	} else {
@@ -1175,12 +1524,12 @@ static int generate_test_gradients(param_t *param,
 		b = y1;
 		l = x0;
 		r = x1;
-		s2 = (x1 - x0) / 4;
+		s2 = (x1 - x0) / (numcolors / colors_per_gradient);
 		l = r - s2;
 		t = y0;
 	}
 
-	for (i = 0; i < numcolors; i += 6) {
+	for (i = 0; i < numcolors; i += colors_per_gradient) {
 		bitmap_gradient(&param->bm,
 				l, t,
 				r, b,
@@ -1214,7 +1563,7 @@ static int gradient_secondary_colors[NUM_GRADIENT_COLORS] =
 	0, 0, 0, 255, 255, 255,
 	0, 0, 0, 0, 255, 255,
 	0, 0, 0, 255, 255, 0,
-	0, 0, 0, 255, 0, 255, 
+	0, 0, 0, 255, 0, 255,
 };
 
 static int generate_test(param_t *param, int m)
@@ -1270,7 +1619,7 @@ static int generate_test(param_t *param, int m)
 
 	generate_test_circles(param, l, t, r);
 
-	t = round(r * 0.85);
+	t = round(r * 0.67);
 
 	l = param->w / 2 - t;
 	r = param->w / 2 + t;
@@ -1297,7 +1646,7 @@ static int generate_test(param_t *param, int m)
 				gradient_secondary_colors,
 				NUM_GRADIENT_COLORS, HORIZONTAL);
 
-	s =  round((double)(MIN(param->w, param->h) * 0.08));
+	s =  round((double)(MIN(param->w, param->h) * 0.06));
 	l = m + s / 2;
 	generate_color_legend(param,
 			      s,
@@ -1335,6 +1684,36 @@ static int generate_hsv(param_t *param, int m)
 	return 0;
 }
 
+static int generate_16m_colors(param_t *param, int m)
+{
+	int t, b, l, r;
+
+	t = m;
+	l = m;
+	r = param->w - m;
+	b = param->h - m;
+
+	bitmap_hsv_rectangle(&param->bm, l, t, r, b,
+			     (b - t) / 16, param->intensity, 360.0);
+
+	bitmap_16m_colors(&param->bm, l, t, r, b);
+
+	return 0;
+}
+
+#define NUM_GRADIENT_COLORS_ALL (8*6)
+static int gradient_colors[NUM_GRADIENT_COLORS_ALL] =
+{
+	255, 255, 255, 0, 0, 0,
+	0, 0, 255, 0, 0, 0,
+	0, 255, 0, 0, 0, 0,
+	255, 0, 0, 0, 0, 0,
+	255, 255, 255, 0, 0, 0,
+	0, 255, 255, 0, 0, 0,
+	255, 255, 0, 0, 0, 0,
+	255, 0, 255, 0, 0, 0,
+};
+
 static int generate_gradient(param_t *param, int orientation, int m)
 {
 	int t, b, l, r;
@@ -1347,8 +1726,8 @@ static int generate_gradient(param_t *param, int orientation, int m)
 	generate_test_gradients(param,
 				l, t,
 				r, b,
-				gradient_primary_colors,
-				NUM_GRADIENT_COLORS,
+				gradient_colors,
+				NUM_GRADIENT_COLORS_ALL,
 				orientation);
 	return 0;
 }
@@ -1371,12 +1750,14 @@ int main(int argc, char **argv)
 		show_params(&param);
 
 	if (bitmap_create(&param.bm, param.w, param.h,
-			  param.stride, param.rotation, param.o_fourcc)) {
+			  param.stride, param.rotation,
+			  param.o_fourcc, param.bpc)) {
 		fprintf(stderr, "Failed top create a bitmap\n");
 		return 1;
 	}
 
 	bitmap_set_debug(&param.bm, param.debug);
+	bitmap_set_stuckbits(&param.bm, param.zero, param.one);
 
 	fprintf(stderr, DEFAULT_SEPARATOR_STRING);
 	fprintf(stderr, "Generating %s pattern w %lu h %lu\n",
@@ -1396,6 +1777,10 @@ int main(int argc, char **argv)
 		ret = generate_fill(&param, m);
 	else if (strncmp("circle", param.pattern, 6) == 0)
 		ret = generate_circle(&param, m);
+	else if (strncmp("logo", param.pattern, 4) == 0)
+		ret = generate_nxp_logo(&param, m);
+	else if (strncmp("shapes", param.pattern, 6) == 0)
+		ret = generate_shapes(&param, m);
 	else if (strncmp("test", param.pattern, 4) == 0)
 		ret = generate_test(&param, m);
 	else if (strncmp("checker", param.pattern, 7) == 0)
@@ -1408,6 +1793,8 @@ int main(int argc, char **argv)
 		ret = generate_wheel(&param, m);
 	else if (strncmp("hsv", param.pattern, 3) == 0)
 		ret = generate_hsv(&param, m);
+	else if (strncmp("16m_colors", param.pattern, 9) == 0)
+		ret = generate_16m_colors(&param, m);
 	else if (strncmp("font", param.pattern, 4) == 0)
 		ret = generate_font(&param, m);
 	else {

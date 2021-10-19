@@ -70,9 +70,28 @@ clean:
 	rm -fv $(OBJ) $(EXE)  $(EXE).debug
 #	echo CCFLAGS $(CCFLAGS)
 
+yuv-diff.exe:
+	gcc yuvdiff.c -lm -o yuvdiff.exe
+
+test-quality: all yuv-diff.exe
+	mkdir -p ../patgen_test
+	time ../scripts/test-quality.sh ../patgen_test
+
+test-quick: all
+	mkdir -p ../patgen_test
+	time ../scripts/test-quick.sh ../patgen_test
+
 test: all
 	mkdir -p ../patgen_test
 	time ../scripts/test.sh ../patgen_test
+
+
+#.PHONY: test-all
+test-all: all test-quality test-quick test
+
+.PHONY: convert-all
+convert-all:
+	time ../scripts/run-ff-convert.sh ../patgen_test
 
 clean-all: clean
 	rm -fvr *.yuv *.rgb *.bmp ../patgen_test
@@ -82,6 +101,10 @@ help:
 	@echo "Supported make targets:"
 	@echo "        all - builds patgen"
 	@echo "        test - build patgen and runs test.sh script"
+	@echo "        test-quick - build patgen and runs test-quick.sh script"
+	@echo "        test-quality - build patgen and runs test-quality.sh script"
+	@echo "        test-all - build patgen and runs all test scripts"
+	@echo "        convert-all - converts all .yuv and .rgb file to bitmaps"
 	@echo "        clean-all - removes build targets and pattern files"
 	@echo "        clean - removes build files"
 	@echo " "

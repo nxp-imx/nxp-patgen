@@ -17,17 +17,23 @@ typedef struct bitmap_s {
 	uint32_t w;
 	uint32_t h;
 	uint32_t stride;
-	uint32_t rotation;
 	uint32_t format;
-	uint32_t bpp;
-	uint32_t planes;
-	uint32_t h_sub;
-	uint32_t w_sub;
+	uint16_t rotation;
+	uint8_t color_space;
+	uint8_t color_range_full;
+	uint8_t bpc;
+	uint8_t bpp;
+	uint8_t planes;
+	uint8_t h_sub;
+	uint8_t w_sub;
+
 	uint32_t *buffer;
 	uint8_t *buffer_luma;
 	uint8_t *buffer_chroma;
 	uint8_t *buffer_alpha;
 	//uint32_t *lines;
+	uint32_t zero;
+	uint32_t one;
 
 	double   alpha;
 	double   intensity;
@@ -54,7 +60,7 @@ typedef union {
 	uint32_t word;
 } color_t;
 
-#define MAX_HEIGHT (4*1024)
+#define MAX_HEIGHT (8*1024)
 #define MAX_WIDTH  (8*1024)
 #define MAX_PATH 1024
 
@@ -65,6 +71,13 @@ typedef union {
 #define MAX_YUVA  0xff
 #define MAX_RB5   0x1f
 #define MAX_G6    0x3f
+
+#define PI M_PI
+#define PHASE_120 (120.0/180 * PI)
+#define PHASE_90 (90.0/180*PI)
+#define TWOPI (2*M_PI)
+#define DEG2RAD(deg) ((double)deg / 180.0 * PI)
+#define RAD2DEG(rad) ((double)rad / PI * 180.0))
 
 /* these are used to allocate the max size buffers needed
  * for RGB and YUV
@@ -87,15 +100,23 @@ typedef struct bitmap_color_s {
 /* 10-10-10-2*/
 #define BGRA10_PIXEL(r,g,b,a) \
 (((a & MAX_A2) << 30) |  ((r & MAX_RGB10) <<20) | \
-((g & MAX_RGB1) << 10) | (b & MAX_RGB10))
+((g & MAX_RGB10) << 10) | (b & MAX_RGB10))
 
 /* 5-6-5*/
-#define BGR656_PIXEL(r,g,b,a) \
+#define BGR565_PIXEL(r,g,b) \
 (((r & 0x1f)<<11) |  ((g&0x3f)<<5) | (b&0x1f)<<0)
 
-#define YUVA_PIXEL(y,u,v,a) \
+#define AVUY_PIXEL(y,u,v,a) \
 (((y & MAX_YUVA) << 24) |  ((u & MAX_YUVA) << 16) | \
  ((v & MAX_YUVA) << 8) | (a & MAX_YUVA))
+
+#define YUVA_PIXEL(y,u,v,a) \
+(((y & MAX_YUVA) << 0) |  ((u & MAX_YUVA) << 8) | \
+ ((v & MAX_YUVA) << 16) | ((a & MAX_YUVA)<< 24))
+
+#define YUYV_PIXEL(y0,u,y1,v) \
+(((y0 & MAX_YUVA) << 0) |  ((u & MAX_YUVA) << 8) | \
+ ((y1 & MAX_YUVA) << 16) | ((v & MAX_YUVA) << 24))
 
 #define BGRA_RED(_p)   (((uint32_t)(_p)>> 16) & 0xff)
 #define BGRA_GREEN(_p) (((uint32_t)(_p)>>  8) & 0xff)
@@ -117,15 +138,25 @@ enum {
 	FORMAT_BGRA8888,
 	FORMAT_BGR565,
 	FORMAT_NV12,
-	FORMAT_YUV444,
+	FORMAT_YUV444P,
 	FORMAT_YUV420,
+	FORMAT_YUV444,
+	FORMAT_YUVA444,
+	FORMAT_YUYV422,
 };
 
+typedef struct {
+	int x,y;
+} point;
+
 int bitmap_create(bitmap_t *bm, int w, int h, int stride,
-		  int rotation, unsigned int format);
+		  int rotation, unsigned int format, unsigned int bpc);
 int bitmap_destroy(bitmap_t *bm);
 void bitmap_dump(bitmap_t *bm);
 void bitmap_set_debug(bitmap_t *bm, int level);
+void bitmap_set_stuckbits(bitmap_t *bm, uint32_t zero, uint32_t one);
+void bitmap_set_color_range(bitmap_t *bm, uint32_t range);
+void bitmap_set_color_space(bitmap_t *bm, uint32_t space);
 int bitmap_is_yuv(unsigned int f);
 
 uint32_t bitmap_get_color(bitmap_t *bm, char *name, uint32_t *color);
@@ -135,13 +166,44 @@ int bitmap_copy_line(bitmap_t *bm, int y, uint32_t *line);
 int bitmap_copy_line_segment(bitmap_t *bm, int x0, int y0,
 			     int size, uint32_t *line);
 int bitmap_draw_pixel(bitmap_t *bm, int x, int y, uint32_t v);
+int bitmap_draw_line(bitmap_t *bm,
+		     int x0, int y0,
+		     int x1, int y1,
+		     uint32_t pixel);
+
+int bitmap_draw_line2(bitmap_t *bm,
+		      int x0, int y0,
+		      int x1, int y1,
+		      int width,
+		      uint32_t pixel);
+
+
 int bitmap_draw_circle(bitmap_t *bm,
 		       int x0, int y0,
 		       int r0, uint32_t v);
+
+int bitmap_fill_circle(bitmap_t *bm, int x0, int y0,
+		       int r0, uint32_t v);
+int bitmap_fill_circle2(bitmap_t *bm, int x0, int y0,
+		       int r0, int r1, uint32_t v);
+
+int bitmap_draw_arc(bitmap_t *bm, int x0, int y0,
+		     int r0, int r1,
+		     double theata0, double theata1,
+		     uint32_t v);
+
 int bitmap_fill_rectangle(bitmap_t *bm,
 			  int x0, int y0,
 			  int x1, int y1,
 			  uint32_t pixel);
+int bitmap_fill_quadrangle(bitmap_t *bm,
+		     int x0, int y0,
+		     int x1, int y1,
+		     int x2, int y2,
+		     int x3, int y4,
+		     uint32_t pixel);
+
+int bitmap_fill_polygon(bitmap_t *bm, point *polygon, int n, uint32_t pixel);
 
 int bitmap_write_file(bitmap_t *bm, char *out);
 
@@ -169,7 +231,10 @@ int bitmap_gradient(bitmap_t *bm,
 int bitmap_hsv_circle(bitmap_t *bm, int x0, int y0, int x1, int y1, double);
 int bitmap_hsv_rectangle(bitmap_t *bm, int x0, int y0, int x1, int y1,
 			 int margin, double val, double degrees);
-int bitmap_corners(bitmap_t *bm, int margin);
+int bitmap_16m_colors(bitmap_t * bm,
+		      int x0, int y0,
+		      int x1, int y1);
+int bitmap_corners(bitmap_t * bm, int margin);
 int bitmap_render_font(bitmap_t *bm,
 		       char *filename,
 		       char *text,
