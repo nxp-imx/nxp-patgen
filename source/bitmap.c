@@ -25,7 +25,6 @@
 #define HEIGHT  (8192)
 #define X_START (4)
 #define Y_START (2)
-
 #include "bitmap.h"
 
 #ifdef DEBUG
@@ -205,7 +204,17 @@ static uint32_t bitmap_bgra_to_bpc(uint32_t pixel, uint32_t bpc)
 	return BGRA_PIXEL(r, g, b, a);
 }
 
-static int bitmap_bgra_to_yuva(uint32_t pixel,
+static  uint8_t clip_uint8(int a)
+{
+	if (a > 0xFF)
+		return 0xFF;
+	if (a < 0)
+		return 0;
+	else
+		return a;
+}
+
+static int bitmap_bgra_to_yuva(bitmap_t *bm, uint32_t pixel,
 			       uint8_t *y, uint8_t *u,
 			       uint8_t *v, uint8_t *a)
 {
@@ -222,12 +231,24 @@ static int bitmap_bgra_to_yuva(uint32_t pixel,
 
 	*a = BGRA_ALPHA(pixel);
 
-	yt = ((coef[0][0] * r) + (coef[0][1] * g) + (coef[0][2] * b) +  134283264) >> 16;
-	*y = (yt + 64) >> 7;
-	ut = ((coef[1][0] * r) + (coef[1][1] * g) + (coef[1][2] * b) + 1073807360) >> 16;
-	*u = (ut + 64) >> 7;
-	vt = ((coef[2][0] * r) + (coef[2][1] * g) + (coef[2][2] * b) + 1073807360) >> 16;
-	*v = (vt + 64) >> 7;
+	yt = (((coef[0][0] * r) + (coef[0][1] * g) + (coef[0][2] * b) +  134283264) >> 17 ) << 1;
+
+	ut = (((coef[1][0] * r) + (coef[1][1] * g) + (coef[1][2] * b) + 1073807360) >> 17) << 1;
+
+	vt = (((coef[2][0] * r) + (coef[2][1] * g) + (coef[2][2] * b) + 1073807360) >> 17) << 1;
+
+	if (bm->color_range_full == 0) {
+		*y = (yt + 64) >> 7;
+		*u = (ut + 64) >> 7;
+		*v = (vt + 64) >> 7;
+	} else {
+		yt = (MIN(yt, 30189) * 19077 - 39057361) >> (14);
+		ut = (MIN(ut, 30775) * 4663 - 9289992) >> (12);
+		vt = (MIN(vt, 30775) * 4663 - 9289992) >> (12);
+		*y = clip_uint8((yt + 64) >> 7);
+		*u = clip_uint8((ut + 64) >> 7);
+		*v = clip_uint8((vt + 64) >> 7);
+	}
 
 	return  0;
 }
@@ -263,6 +284,16 @@ void bitmap_set_stuckbits(bitmap_t *bm, uint32_t zero, uint32_t one)
 {
 	bm->zero = zero;
 	bm->one = one;
+}
+
+void bitmap_set_color_range(bitmap_t *bm, uint32_t range)
+{
+	bm->color_range_full = range;
+}
+
+void bitmap_set_color_space(bitmap_t *bm, uint32_t space)
+{
+	bm->color_space = space;
 }
 
 uint32_t bitmap_set_alpha(bitmap_t *bm, uint32_t color, double alpha)
@@ -1070,13 +1101,13 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 			uint8_t y, u, v, a;
 			uint8_t y0, u0, y1, v0;
 
-			bitmap_bgra_to_yuva(bm->buffer[i], &y, &u, &v, &a);
+			bitmap_bgra_to_yuva(bm, bm->buffer[i], &y, &u, &v, &a);
 			y0 = y;
 			u0 = u;
 			v0 = v;
 
 			/* todo: handle odd widths */
-			bitmap_bgra_to_yuva(bm->buffer[i + 1], &y, &u, &v, &a);
+			bitmap_bgra_to_yuva(bm, bm->buffer[i + 1], &y, &u, &v, &a);
 			y1 = y;
 
 			buffer_out[i / 2] = YUYV_PIXEL(y0, u0, y1, v0);
@@ -1091,7 +1122,7 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 		for (i = 0, j = 0;  i < s; i++) {
 			uint8_t y, u, v, a;
 
-			bitmap_bgra_to_yuva(bm->buffer[i], &y, &u, &v, &a);
+			bitmap_bgra_to_yuva(bm, bm->buffer[i], &y, &u, &v, &a);
 
 			buffer_out[j] = y;
 			buffer_out[j + 1] = u;
@@ -1127,7 +1158,7 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 			"Converting to output FORMAT_YUV444 (yuva444p)\n");
 		for (i = 0;  i < s; i++) {
 			uint8_t y, u, v, a;
-			bitmap_bgra_to_yuva(bm->buffer[i], &y, &u, &v, &a);
+			bitmap_bgra_to_yuva(bm, bm->buffer[i], &y, &u, &v, &a);
 			ybuf[i] = y;
 			ubuf[i] = u;
 			vbuf[i] = v;

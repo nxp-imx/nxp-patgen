@@ -17,13 +17,16 @@ typedef struct bitmap_s {
 	uint32_t w;
 	uint32_t h;
 	uint32_t stride;
-	uint32_t rotation;
 	uint32_t format;
-	uint32_t bpc;
-	uint32_t bpp;
-	uint32_t planes;
-	uint32_t h_sub;
-	uint32_t w_sub;
+	uint16_t rotation;
+	uint8_t color_space;
+	uint8_t color_range_full;
+	uint8_t bpc;
+	uint8_t bpp;
+	uint8_t planes;
+	uint8_t h_sub;
+	uint8_t w_sub;
+
 	uint32_t *buffer;
 	uint8_t *buffer_luma;
 	uint8_t *buffer_chroma;
@@ -152,6 +155,8 @@ int bitmap_destroy(bitmap_t *bm);
 void bitmap_dump(bitmap_t *bm);
 void bitmap_set_debug(bitmap_t *bm, int level);
 void bitmap_set_stuckbits(bitmap_t *bm, uint32_t zero, uint32_t one);
+void bitmap_set_color_range(bitmap_t *bm, uint32_t range);
+void bitmap_set_color_space(bitmap_t *bm, uint32_t space);
 int bitmap_is_yuv(unsigned int f);
 
 uint32_t bitmap_get_color(bitmap_t *bm, char *name, uint32_t *color);
