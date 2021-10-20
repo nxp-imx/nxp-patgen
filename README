@@ -11,13 +11,13 @@ patgen is not intented to replace other GPU and VPU media tests. It is intended
 to provide tools to isolate and debug display and camera issues.
 
 patgen.exe  [-v] [-d] [-h] [-a alpha percent ] [-border] [-header]
+[-footer] [-0 stuck zero 0xaarrbbgg][-1 stuck one 0xaarrbbgg]
 [-c xRGB pixel value 0xrrggbb] [-vs -vsize widthxheight pixels]
 [-i intensity percent] [-size checker size pixels]
 [-steps number of graybar steps] [-pix_fmt pixel format]
 [-r rotation 0,90,180,or 270 degrees] [-min_i min_intensity percent]
 [-max_i max_intensity percent] [-o outfile name prefix] [-p pattern]
-[-s stride pixels]
-
+[-s stride pixels]] [-range color range]][-space color space]
 
 usage: ./patgen.exe
 	-v -verbose
@@ -31,40 +31,32 @@ usage: ./patgen.exe
 		checker		creates a checkerboard pattern using -size
 
 		circle		Draw circle with a background fill
-
 		colorbar	Vertical color bars
-
 		colorbar2	Alternate colors bars
-
 		colorcheck	24 color checker
-
 		fill		Fill the pattern with -color at -intensity).
-
-		font		Pattern with some sample text from the fonts in
-				use.
-
+		font		Pattern with some sample text from the fonts
+				in use.
 		graybar		11 shaded bars, the default is white bars from
 				100% to 0%. The -color, -steps, -min_i, and
-				max_i parameters can be used with this pattern.
-
-		gradient	Creates four horizontal gradient bars red,
-				green , blue and white.
-
-		vgradient	Creates four vertical gradient bars red, green,
+				max_i
+				parameters can be used with this pattern.
+		gradient	Creates eight horizontal gradient bars:
+				magenta, yellow, cyan, white, red, green,
+				blue and white.
+		vgradient	Creates eight four vertical gradient bars:
+				magenta, yellow, cyan, white, red, green,
 				blue, and white.
-
 		hsv		Creates an HSV color transtion gradient. The
 				-i sets the V (value) for HSV.
-
 		shapes		Draw test shapes with a background fill
-
+		logo		Draw an NXP logo
 		test		Creates a testcard like pattern.
-
 		wheel	Creates an HSV color wheel. The -i sets the V
 			(value) for HSV.
 
 	-border
-		Adds a border to the patern
+		Adds a border to the pattern
 
 	-header
 		Adds header text to the pattern border
@@ -72,24 +64,29 @@ usage: ./patgen.exe
 	-footer
 		Adds footer text to the pattern border
 
+	-0 -[stuck zero 0xaarrbbgg]
+
+	-1 -[stuck one 0xaarrbbgg]
+
 	-a -alpha [alpha (%)]
 		Sets the alpha value. Default is 100.0%
 
+	-b -bits per color [bits per color 1-8]
+
 	-c -[RGB color in hex 0xaarrbbgg]
-		Sets the color default for the fill and
-		graybar patterns. Default is white.
+		Sets the color default for the fill and graybars
 
 	-i -intensity [intensity (%)]
-		Sets the color intensity for the colorbar, fill and
-		hsv patterns. Default is 100.0%
+		Sets the color intensity for the colorbar, fill, graybars,
+		and hsv patterns. Default is 100.0%
 
 	-min_i [minimum intensity (%)]
-		Sets the minimum intensity for the graybar pattern. Default is
-		0.0%
+		Sets the minimum intensity for the graybar pattern.
+		Default is 0.0%
 
 	-max_i[maximum intensity (%)]
-		Sets the maximum intensity for the graybar pattern. Default is
-		100.0%
+		Sets the maximum intensity for the graybar pattern.
+		Default is 100.0%
 
 	-steps [steps]
 		Sets the number steps in the graybar pattern
@@ -100,26 +97,37 @@ usage: ./patgen.exe
 	-o -outfile [prefix string]
 		Adds a prefix to the default pattern name
 
-	-pix_fmt [pixel format]
+	-pix_fmt
 		Supported formats are:
-			bgra     32 bits per pixel RGBA
+			bgra     32 bits per pixel RGB
 			rgb565le 16 bits per pixel RGB
-			yuv444p  24 bits per pixel YUV (3 planes Y, U and V)
-			yuv420p  12 bits per pixel YUV (3 planes Y, U and V)
-			yuv444   24 bits per pixel YUV (1 plane Y, U and V, YUV)
-			yuva444  32 bits per pixel YUV (1 plane Y, U and V, YUVA)
-			yuv422   16 bits per pixel YUV (1 plane Y, U and V, YUYV)
-			nv12     12 bits per pixel YUV (2 planes Y and UV)
+			yuv420p  12 bits per pixel YUV
+				 (3 planes Y, U and V)
+			yuv444p  24 bits per pixel YUV
+				 (3 planes Y, U and V)
+			yuva444  32 bits per pixel YUV
+				 (1 plane  Y, U, V,
+				 and A YUVA)
+			yuv444   24 bits per pixel YUV
+				 (1 plane  Y, U and V YUV)
+			yuvj444p 24 bits per pixel YUV full color range
+				 (1 plane  Y, U and V YUV)
+			yuvy422  16 bits per pixel YUV
+				 (1 plane  Y, U, Y, and V YUYV)
+			nv12     12 bits per pixel YUV
+				 (2 planes Y and UV)
 
-	-vs -vsize [HxW (lines x pixels)]
-		Sets the width and hight of the output
+	-range - YUV color range
+		Sets the color range 0/1 = limited/full
 
-	-r -rotation [rotation (degrees)]
-		Rotates the final image to 0, 90, 180, or 360
+	-space - YUV color space
+		 0 is bt.601
 
-	-stride [stride (pixels)]
-		Sets the stride if it is larger the the width
+	-vs -vsize [WxH (pixelsXlines)] Sets the width and hight of the output
 
-	-fb [frame buffer device]
-		Name of the framebuffer device file
+	-r -rotation [rotation (degrees)] rotates the final image to
+	   	     0, 90, 180, or 270
 
+	-stride [stride (pixels)] Sets the stride if it is larger the width
+
+	-fb [frame buffer device] Name of the framebuffer device file
