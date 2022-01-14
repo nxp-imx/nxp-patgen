@@ -6,13 +6,13 @@ BG=&
 TEST=test50
 RES=1280x720
 FMT=bgra
-time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 FMT=yuv444p
-time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 FMT=yuyv422
-time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 FMT=yuv420p
-time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 
 wait
 
