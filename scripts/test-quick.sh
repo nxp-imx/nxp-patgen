@@ -5,6 +5,7 @@ TEST=test01
 RES=1280x720
 FMT=bgra
 
+time ./patgen.exe -v -pattern checker -size 4 -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 time ./patgen.exe -v -pattern circle     -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 time ./patgen.exe -v -pattern colorbar   -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 time ./patgen.exe -v -pattern colorbar2  -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
@@ -17,10 +18,12 @@ time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pi
 time ./patgen.exe -v -pattern wheel      -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 time ./patgen.exe -v -pattern colorcheck -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
+time ./patgen.exe -v -pattern shapes     -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
+time ./patgen.exe -v -pattern logo       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 
 RES=1920x1080
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
-RES=3840x720
+RES=3840x2160
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 
 FMT=rgb565le
@@ -28,7 +31,7 @@ RES=1280x720
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 RES=1920x1080
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
-RES=3840x720
+RES=3840x2160
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 
 wait
