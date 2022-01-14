@@ -1,5 +1,6 @@
 CC=gcc
 STRIP=strip
+UNAME_P := $(shell uname -p)
 
 ifeq ($(OS),Windows_NT)
     CFLAGS += -D WIN32
@@ -17,17 +18,14 @@ else
     UNAME_S := $(shell uname -s)
     ifeq ($(UNAME_S),Linux)
         CFLAGS += -D LINUX
-	INCLUDES=-I. -I/usr/include/freetype2 -I/usr/include/libpng16
-	LIBS= -lm -lfreetype
-
+	    INCLUDES=-I. -I/usr/include/freetype2 -I/usr/include/libpng16
+	    LIBS= -lm -lfreetype
     endif
     ifeq ($(UNAME_S),Darwin)
         CFLAGS += -D OSX
-	INCLUDES=-I. -I/opt/local/include/freetype2 -I/usr/include/libpng16
-	LIBS= -lm -lfreetype -L/opt/local/lib
-
+        INCLUDES=-I. -I$(HOMEBREW_PREFIX)/include/freetype2 -I$(HOMEBREW_PREFIX)/include/libpng16
+        LIBS= -lm -lfreetype -L$(HOMEBREW_PREFIX)/lib
     endif
-    UNAME_P := $(shell uname -p)
     ifeq ($(UNAME_P),x86_64)
         CCFLAGS += -D AMD64
     endif
@@ -84,7 +82,6 @@ test-quick: all
 test: all
 	mkdir -p ../patgen_test
 	time ../scripts/test.sh ../patgen_test
-
 
 #.PHONY: test-all
 test-all: all test-quality test-quick test
