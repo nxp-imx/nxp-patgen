@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 NXP
+ * Copyright 2022 NXP
  */
 /*
  * The code contained herein is licensed under the GNU General Public
@@ -1550,7 +1550,7 @@ int bitmap_16m_colors(bitmap_t *bm,
 
 	if (size < min_size) {
 		fprintf(stderr,
-			"%s() bitmap is too small %u. Needs to be %u pixels or larger\n",
+			"%s() bitmap is too small %u. Needs to be %u pixels or larger (e.g. 4096x4096)\n",
 			__func__, size, min_size);
 	}
 	for (y = y0; y < y1; y++) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 NXP
+ * Copyright 2022 NXP
  */
 /*
  * The code contained herein is licensed under the GNU General Public
