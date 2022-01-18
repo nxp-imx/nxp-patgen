@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 NXP
+ * Copyright 2022 NXP
  */
 /*
  * The code contained herein is licensed under the GNU General Public
@@ -87,12 +87,56 @@ typedef struct param_s {
 } param_t;
 
 static const char help[] =
-	"\nusage: %s\n"
-	"\t-v -verbose\n\t\tEcho the command parameters\n\n"
+
+"Patgen Description\n\n"
+
+"patgen is a simple pattern generator designed to build and run on Linux\n"
+"platforms and embedded Linux platform. Requires stadard c library. To run\n"
+"the default font needs to be a symbolically linked to the run directory.\n"
+"GPL font, K1FS-1.2, is included as the default. \"DejaVuSansMono.ttf\" has\n"
+"also been tested. The DejaVu font can be found in /usr/share/fonts/truetype\n"
+"on yocto systems or in /usr/share/fonts/truetype/dejavu on ubuntu systems.\n\n"
+
+"patgen is not intented to replace other GPU and VPU media tests. It is\n"
+"intended to provide tools to isolate and debug display and camera issues.\n\n"
+
+	"%s [-0 stuck zero 0xaarrbbgg][-1 stuck one 0xaarrbbgg]\n"
+	"[-a alpha percent ] [-border] [-b, -bpc 1-8 bit per color]\n"
+	"[-c xRGB pixel value 0xrrggbb] [-d] [-fb frame buffer device file]\n"
+	"[-footer] [-grid] [-header] [-h, -help] [-i, -intensity percent]\n"
+	"[-max_i max_intensity percent] [-min_i min_intensity percent]\n"
+	"[-o outname name prefix] [-p pattern] [-pix_fmt pixel format]\n"
+	"[-range range] [-steps steps for colorbar/graybar]\n"
+	"[-r rotation 0,90,180,or 270 degrees] [-stride stride in pixels]\n"
+	"[-v verbose mode] [-vs -vsize widthxheight pixels]\n"
+	"\nusage:\n"
+	"\t-0 -zero Force stuck zero [1-hot stuck zero pattern 0xaarrbbgg]\n\n"
+	"\t-1 -one Force stuck one [1-hot stuck one patter 0xaarrbbgg]\n\n"
+	"\t-a -alpha [alpha (%%)]\n\t\tSets the alpha value. Default is 100.0%%\n\n"
+	"\t-border\n\t\tAdds a border to the pattern\n\n"
+	"\t-b -bpc bits per color [bits per color 1-8]\n\n"
+	"\t-c -color Default color[RGB color in hex 0xaarrbbgg]\n"
+	"\t\tSets the color default for the fill and graybars\n\n"
 	"\t-d -debug [level]\n\t\tSets the debug level\n\n"
+	"\t-fb [frame buffer device] Name of the framebuffer device file\n\n"
+	"\t-footer\n\t\tAdds footer text to the pattern border\n\n"
+	"\t-grid Enables 10%%//5%% overlay grid\n\n"
+	"\t-header\n\t\tAdds header text to the pattern border\n\n"
+	"\t-h -help\n\t\tShows usage\n\n"
+	"\t-i -intensity [intensity (%%)]\n"
+	"\t\tSets the color intensity for the colorbar, fill, graybars,\n"
+	"\t\tand hsv patterns. Default is 100.0%%\n\n"
+	"\t-max_i[maximum intensity (%%)]\n"
+	"\t\tSets the maximum intensity for the colorbar/graybar pattern.\n"
+	"\t\t\tDefault is 100.0%%\n\n"
+	"\t-min_i [minimum intensity (%%)] \n"
+	"\t\tSets the minimum intensity for the colorbar/graybar pattern.\n"
+	"\t\t\tDefault is 0.0%%\n\n"
+	"\t-o -outname [prefix string]\n"
+	"\t\tAdds a prefix to the default pattern name\n\n"
 	"\t-p -pattern [pattern]\n\t\tSelect the type pattern to generate:\n"
 	"\t\tchecker\t\tcreates a checkerboard pattern using -size\n\n"
-	"\t\tcircle\t\tDraw circle with a background fill\n"
+	"\t\tcircle\t\tDraws circle with a background fill\n"
 	"\t\tcolorbar\tVertical color bars\n"
 	"\t\tcolorbar2\tAlternate colors bars\n"
 	"\t\tcolorcheck\t24 color checker\n"
@@ -110,49 +154,34 @@ static const char help[] =
 	"\t\tshapes\t\tDraw test shapes with a background fill\n"
 	"\t\tlogo\t\tDraw an NXP logo\n"
 	"\t\ttest\t\tCreates a testcard like pattern.\n"
-	"\t\twheel\tCreates an HSV color wheel. The -i sets the V\n"
-	"\t\t\t(value) for HSV.\n\n"
-	"\t-border\n\t\tAdds a border to the pattern\n\n"
-	"\t-header\n\t\tAdds header text to the pattern border\n\n"
-	"\t-footer\n\t\tAdds footer text to the pattern border\n\n"
-	"\t-0 -[stuck zero 0xaarrbbgg]\n\n"
-	"\t-1 -[stuck one 0xaarrbbgg]\n\n"
-	"\t-a -alpha [alpha (%%)]\n\t\tSets the alpha value. Default is 100.0%%\n\n"
-	"\t-b -bits per color [bits per color 1-8]\n\n"
-	"\t-c -[RGB color in hex 0xaarrbbgg]\n"
-	"\t\tSets the color default for the fill and graybars\n\n"
-	"\t-i -intensity [intensity (%%)]\n"
-	"\t\tSets the color intensity for the colorbar, fill, graybars,\n"
-	"\t\tand hsv patterns. Default is 100.0%%\n\n"
-	"\t-min_i [minimum intensity (%%)] \n"
-	"\t\tSets the minimum intensity for the graybar pattern. Default is 0.0%%\n\n"
-	"\t-max_i[maximum intensity (%%)]\n"
-	"\t\tSets the maximum intensity for the graybar pattern. Default is 100.0%%\n\n"
-	"\t-steps [steps]\n"
-	"\t\tSets the number steps in the graybar pattern\n\n"
-	"\t-size  -checker_size [size (pixels)]\n"
-	"\t\tSets the size of the checker board squares in pixels\n\n"
-	"\t-o -outfile [prefix string]\n"
-	"\t\tAdds a prefix to the default pattern name\n\n"
+	"\t\twheel\t\tCreates an HSV color wheel. The -i sets the V\n"
+	"\t\t\t\t(value) for HSV.\n\n"
+	"\t\t16m_colors\tCreates an 4096x4096 color burst of 16\n"
+	"\t\t\t\tmillion colors.\n\n"
 	"\t-pix_fmt\n"
 	"\t\tSupported formats are:\n"
-	"\t\t\tbgra     32 bits per pixel RGB\n"
-	"\t\t\trgb565le 16 bits per pixel RGB\n"
-	"\t\t\tyuv420p  12 bits per pixel YUV (3 planes Y, U and V)\n"
-	"\t\t\tyuv444p  24 bits per pixel YUV (3 planes Y, U and V)\n"
-	"\t\t\tyuva444  32 bits per pixel YUV (1 plane  Y, U, V, and A YUVA)\n"
-	"\t\t\tyuv444   24 bits per pixel YUV (1 plane  Y, U and V YUV)\n"
-	"\t\t\tyuvj444p 24 bits per pixel YUV full color range (1 plane  Y, U and V YUV)\n"
-	"\t\t\tyuvy422  16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)\n"
-	"\t\t\tnv12     12 bits per pixel YUV (2 planes Y and UV)\n\n"
+	"\t\tbgra     32 bits per pixel RGB\n"
+	"\t\trgb565le 16 bits per pixel RGB\n"
+	"\t\tyuv420p  12 bits per pixel YUV (3 planes Y, U and V)\n"
+	"\t\tyuv444p  24 bits per pixel YUV (3 planes Y, U and V)\n"
+	"\t\tyuva444  32 bits per pixel YUV (1 plane  Y, U, V, and A YUVA)\n"
+	"\t\tyuv444   24 bits per pixel YUV (1 plane  Y, U and V YUV)\n"
+	"\t\tyuvj444p 24 bits per pixel YUV full color range (1 plane  Y, U and V YUV)\n"
+	"\t\tyuvy422  16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)\n"
+	"\t\tnv12     12 bits per pixel YUV (2 planes Y and UV)\n\n"
 	"\t-range - YUV color range\n"
 	"\t\tSets the color range 0/1 = limited/full\n\n"
+	"\t-r -rotation [rotation (degrees)] rotates the final image to 0, 90, 180, or 270\n\n"
+	"\t-size  -checker_size [size (pixels)]\n\n"
 	"\t-space - YUV color space\n"
 	"\t\t 0 is bt.601\n\n"
-	"\t-vs -vsize [WxH (pixelsXlines)] Sets the width and hight of the output\n\n"
-	"\t-r -rotation [rotation (degrees)] rotates the final image to 0, 90, 180, or 270\n\n"
+	"\t-steps [steps]\n"
+	"\t\tSets the number steps in the graybar pattern\n\n"
 	"\t-stride [stride (pixels)] Sets the stride if it is larger the width\n\n"
-	"\t-fb [frame buffer device] Name of the framebuffer device file\n\n"
+	"\t\tSets the size of the checker board squares in pixels\n\n"
+	"\t-v -verbose\n\t\tEchos the command parameters\n\n"
+	"\t-vs -vsize [WxH (pixelsXlines)] Sets the width and hight of the output.\n"
+	"\t\tDefault is 640x480\n\n"
 ;
 
 static void command_usage(char *argv0)
@@ -385,7 +414,7 @@ static int command_parse(int argc, char **argv, param_t *p)
 			if (p->verbose)
 				fprintf(stderr, "-h -help is set\n");
 			command_usage(argv[0]);
-			exit(1);
+			exit(0);
 			break;
 		case 'v':
 			p->verbose = 1;
@@ -1736,13 +1765,14 @@ static param_t param;
 
 int main(int argc, char **argv)
 {
-	int ret, m = 0;
+	int ret = 0, m = 0;
 
 	set_params(&param);
 
-	fprintf(stderr, DEFAULT_SEPARATOR_STRING);
 	if (command_parse(argc, argv, &param))
 		fprintf(stderr, "Using defaults\n");
+
+	fprintf(stderr, DEFAULT_SEPARATOR_STRING);
 
 	update_params(&param);
 
