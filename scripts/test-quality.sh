@@ -99,7 +99,6 @@ time ./patgen.exe -v -pattern 16m_colors -vsize $RES -pix_fmt $FMT -outname "$DI
 
 wait
 
-
 # run these sequentially so logs are not mangled
 ../scripts/ff-psnr.sh  "$DIR"/test50-test-1280x720-yuv444p.yuv "$DIR"/test50-test-1280x720-yuv444p_bgra.yuv
 
