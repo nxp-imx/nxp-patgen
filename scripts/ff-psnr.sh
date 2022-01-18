@@ -42,6 +42,3 @@ ffmpeg \
 -video_size  ${resolution1} -pix_fmt ${informat1} -i "${1}" \
 -video_size  ${resolution2} -pix_fmt ${informat2} -i "${2}" \
 -lavfi psnr=stats_file=${outfilebase1}-psnr_logfile-${resolution1}-${format_list1}--${format_list2}.txt -f null -
-
-
-

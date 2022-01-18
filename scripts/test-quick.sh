@@ -35,5 +35,3 @@ RES=3840x2160
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 
 wait
-
-

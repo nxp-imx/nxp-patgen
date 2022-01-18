@@ -342,13 +342,18 @@ wait
 
 TEST=test20
 RES=8192x8192
-FMT=yuva444
+FMT=yuvj444p
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 
-FMT=yuva444
+FMT=yuvj444p
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 
 FMT=yuyv422
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
+
+TEST=test21
+RES=8192x8192
+FMT=bgra
+time ./patgen.exe -v -pattern 16m_colors -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 
 wait
