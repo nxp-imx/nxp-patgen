@@ -6,13 +6,13 @@ BG=&
 TEST=test50
 RES=1280x720
 FMT=bgra
-time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 FMT=yuv444p
-time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 FMT=yuyv422
-time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 FMT=yuv420p
-time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 
 wait
 
@@ -98,7 +98,6 @@ time ./patgen.exe -v -pattern 16m_colors -vsize $RES -pix_fmt $FMT -outname "$DI
 ../scripts/ff-csc.sh "$DIR"/test54-16m_colors-4096x4096-bgra.rgb yuv444p  yuv ${BG}
 
 wait
-
 
 # run these sequentially so logs are not mangled
 ../scripts/ff-psnr.sh  "$DIR"/test50-test-1280x720-yuv444p.yuv "$DIR"/test50-test-1280x720-yuv444p_bgra.yuv

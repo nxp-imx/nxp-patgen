@@ -23,4 +23,3 @@ echo converting $1 from $informat to $outformat
 echo resolution is $resolution
 
 ffmpeg -loglevel debug -pix_fmt ${informat} -video_size ${resolution} -i $1   -pix_fmt ${2} ${outfile}
-

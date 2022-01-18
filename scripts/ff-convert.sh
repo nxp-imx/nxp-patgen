@@ -18,4 +18,3 @@ echo converting ${1} from ${informat} to ${outformat}
 #echo "outfile: ${outfile}"
 
 ffmpeg -pix_fmt ${informat} -video_size ${resolution} -i ${1}  ${outfile}
-
