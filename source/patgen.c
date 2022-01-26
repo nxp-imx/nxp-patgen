@@ -91,13 +91,13 @@ static const char help[] =
 "Patgen Description\n\n"
 
 "patgen is a simple pattern generator designed to build and run on Linux\n"
-"platforms and embedded Linux platform. Requires stadard c library. To run\n"
+"platforms and embedded Linux platforms. Requires standard c library. To run\n"
 "the default font needs to be a symbolically linked to the run directory.\n"
 "GPL font, K1FS-1.2, is included as the default. \"DejaVuSansMono.ttf\" has\n"
 "also been tested. The DejaVu font can be found in /usr/share/fonts/truetype\n"
 "on yocto systems or in /usr/share/fonts/truetype/dejavu on ubuntu systems.\n\n"
 
-"patgen is not intented to replace other GPU and VPU media tests. It is\n"
+"patgen is not intended to replace other GPU and VPU media tests. It is\n"
 "intended to provide tools to isolate and debug display and camera issues.\n\n"
 
 	"%s [-0 stuck zero 0xaarrbbgg][-1 stuck one 0xaarrbbgg]\n"
@@ -149,7 +149,7 @@ static const char help[] =
 	"\t\t\t\tcyan, white, red, green, blue and white.\n"
 	"\t\tvgradient\tCreates eight four vertical gradient bars: magenta, yellow,\n"
 	"\t\t\t\tcyan, white, red, green, blue, and white.\n"
-	"\t\thsv\t\tCreates an HSV color transtion gradient. The\n"
+	"\t\thsv\t\tCreates an HSV color transition gradient. The\n"
 	"\t\t\t\t-i sets the V (value) for HSV.\n"
 	"\t\tshapes\t\tDraw test shapes with a background fill\n"
 	"\t\tlogo\t\tDraw an NXP logo\n"
@@ -180,7 +180,7 @@ static const char help[] =
 	"\t-stride [stride (pixels)] Sets the stride if it is larger the width\n\n"
 	"\t\tSets the size of the checker board squares in pixels\n\n"
 	"\t-v -verbose\n\t\tEchos the command parameters\n\n"
-	"\t-vs -vsize [WxH (pixelsXlines)] Sets the width and hight of the output.\n"
+	"\t-vs -vsize [WxH (pixelsXlines)] Sets the width and height of the output.\n"
 	"\t\tDefault is 640x480\n\n"
 ;
 
