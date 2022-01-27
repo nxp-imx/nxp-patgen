@@ -72,16 +72,28 @@ convert-all:
 	time ../scripts/run-ff-convert.sh ../patgen_test
 
 clean-all: clean
-	rm -fvr *.yuv *.rgb *.bmp ../patgen_test
+	rm -fvr *.yuv *.rgb *.bmp ../patgen_test ../patgen-linux-test-export
 
 .PHONY: doc
 doc: all
 	./patgen.exe -h 2> ../README
 
+linux-test-export: all doc
+	rm -rf ../patgen-linux-test-export
+	mkdir -p ../patgen-linux-test-export
+	cp ../README ../patgen-linux-test-export/README_patgen
+	cp Makefile.linux-test ../patgen-linux-test-export/Makefile
+	cp patgen.c bitmap.c bitmap.h ../patgen-linux-test-export
+	cp ../fonts/K1FS-1.2/K1FS.ttf ../patgen-linux-test-export
+	cp ../fonts/K1FS-1.2/LICENSE  ../patgen-linux-test-export/LICENSE.K1FS.ttf
+	ln -s ./K1FS.ttf ../patgen-linux-test-export/body-font.ttf
+	ln -s ./K1FS.ttf ../patgen-linux-test-export/header-font.ttf
+
 help:
 	@echo " "
 	@echo "Supported make targets:"
 	@echo "        all - builds patgen"
+	@echo "        linux-test-export - create a source directory for linux-test"
 	@echo "        test - build patgen and runs test.sh script"
 	@echo "        test-quick - build patgen and runs test-quick.sh script"
 	@echo "        test-quality - build patgen and runs test-quality.sh script"
