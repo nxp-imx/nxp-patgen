@@ -7,7 +7,7 @@ GPL font, K1FS-1.2, is included as the default. "DejaVuSansMono.ttf" has
 also been tested. The DejaVu font can be found in /usr/share/fonts/truetype
 on yocto systems or in /usr/share/fonts/truetype/dejavu on ubuntu systems.
 
-patgen is not intented to replace other GPU and VPU media tests. It is
+patgen is not intended to replace other GPU and VPU media tests. It is
 intended to provide tools to isolate and debug display and camera issues.
 
 ./patgen.exe [-0 stuck zero 0xaarrbbgg][-1 stuck one 0xaarrbbgg]
@@ -84,7 +84,7 @@ usage:
 				cyan, white, red, green, blue and white.
 		vgradient	Creates eight four vertical gradient bars: magenta, yellow,
 				cyan, white, red, green, blue, and white.
-		hsv		Creates an HSV color transtion gradient. The
+		hsv		Creates an HSV color transition gradient. The
 				-i sets the V (value) for HSV.
 		shapes		Draw test shapes with a background fill
 		logo		Draw an NXP logo
@@ -127,6 +127,6 @@ usage:
 	-v -verbose
 		Echos the command parameters
 
-	-vs -vsize [WxH (pixelsXlines)] Sets the width and hight of the output.
+	-vs -vsize [WxH (pixelsXlines)] Sets the width and height of the output.
 		Default is 640x480
 
