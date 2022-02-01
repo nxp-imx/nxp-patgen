@@ -1,0 +1,5 @@
+# .gitignore for patgen
+/patgen_test/
+*.o
+*.exe
+
