@@ -14,7 +14,7 @@ ifeq ($(UNAME_S),Darwin)
 	INCLUDES=-I. -I$(HOMEBREW_PREFIX)/include/freetype2 -I$(HOMEBREW_PREFIX)/include/libpng16
 	LIBS= -lm -lfreetype -L$(HOMEBREW_PREFIX)/lib
 endif
-	ifeq ($(UNAME_P),x86_64)
+ifeq ($(UNAME_P),x86_64)
 	CFLAGS += -D AMD64
 endif
 ifneq ($(filter %86,$(UNAME_P)),)
@@ -54,7 +54,7 @@ endif
 clean:
 	rm -fv $(OBJ) $(EXE)  $(EXE).debug
 
-test-quality: all yuv-diff.exe
+test-quality: all
 	mkdir -p ../patgen_test
 	time ../scripts/test-quality.sh ../patgen_test
 
