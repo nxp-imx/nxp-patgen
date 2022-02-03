@@ -1,52 +1,42 @@
-CC=gcc
-STRIP=strip
+CC?=gcc
+STRIP?=strip
+INCLUDE_BASE_DIR?=/usr/include
+LIBRARY_BASE_DIR?=/lib
+DEBUG ?= 0
 
-UNAME_P := $(shell uname -p)
 UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S),Linux)
-	CFLAGS += -D LINUX
-	INCLUDES=-I. -I/usr/include/freetype2 -I/usr/include/libpng16
-	LIBS= -lm -lfreetype
+	INCLUDES=-I. -I$(INCLUDE_BASE_DIR)/freetype2 -I$(INCLUDE_BASE_DIR)/include/libpng16
+	LIBS= -lm -lfreetype -L$(LIBRARY_BASE_DIR)
 endif
+
 ifeq ($(UNAME_S),Darwin)
-	CFLAGS += -D OSX
 	INCLUDES=-I. -I$(HOMEBREW_PREFIX)/include/freetype2 -I$(HOMEBREW_PREFIX)/include/libpng16
 	LIBS= -lm -lfreetype -L$(HOMEBREW_PREFIX)/lib
-endif
-ifeq ($(UNAME_P),x86_64)
-	CFLAGS += -D AMD64
-endif
-ifneq ($(filter %86,$(UNAME_P)),)
-	CFLAGS += -D IA32
-endif
-ifneq ($(filter arm%,$(UNAME_P)),)
-	CFLAGS += -D ARM
 endif
 
 DEPS = patgen.h bitmap.h
 OBJ = patgen.o bitmap.o
 EXE = patgen.exe
 
-OFLAGS=-Os -O2
-CFLAGS=-Wall
+CFLAGS+=-Wall
 
 ifeq ($(DEBUG), 1)
     CFLAGS += -g -DDEBUG
 else
     CFLAGS +=-DNDEBUG  $(OFLAGS)
 endif
-CFLAGS +=$(INCLUDES)
-
-DEBUG ?= 0
+CFLAGS += $(INCLUDES)
+LDFLAGS += -Os -O2 $(LIBS)
 
 all: $(EXE)
 
 %.o: %.c $(DEPS)
-	$(CC) -c -o $@ $<
+	$(CC) -c -o $@ $< $(CFLAGS)
 
 $(EXE): $(OBJ)
-	$(CC)  -o $@ $^ $(LIBS)
+	$(CC)  -o $@ $^ $(LDFLAGS)
 ifeq ($(DEBUG), 0)
 	$(STRIP) $@
 endif
