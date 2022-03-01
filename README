@@ -98,6 +98,8 @@ usage:
 	-pix_fmt
 		Supported formats are:
 		bgra     32 bits per pixel RGB
+		rgb24    24 bits per pixel RGB
+		bgr24    24 bits per pixel BGR
 		rgb565le 16 bits per pixel RGB
 		yuv420p  12 bits per pixel YUV (3 planes Y, U and V)
 		yuv444p  24 bits per pixel YUV (3 planes Y, U and V)
