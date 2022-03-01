@@ -34,4 +34,16 @@ time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pi
 RES=3840x2160
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 
+FMT=rgb24
+RES=1280x720
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
+RES=1920x1080
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
+
+FMT=bgr24
+RES=1280x720
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
+RES=1920x1080
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
+
 wait

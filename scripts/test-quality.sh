@@ -7,6 +7,10 @@ TEST=test50
 RES=1280x720
 FMT=bgra
 time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+FMT=bgr24
+time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+FMT=rgb24
+time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 FMT=yuv444p
 time ./patgen.exe -v -pattern test -border -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 FMT=yuyv422
@@ -20,6 +24,10 @@ TEST=test51
 RES=1920x1080
 FMT=bgra
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+FMT=rgb24
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
+FMT=bgr24
+time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 FMT=yuv444p
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 FMT=yuyv422
@@ -27,6 +35,7 @@ time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pi
 FMT=yuv420p
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" ${BG}
 
+T
 wait
 
 TEST=test52

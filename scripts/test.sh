@@ -124,8 +124,7 @@ wait
 
 TEST=test07
 RES=1920x1080
-FMT=yuv444p
-FMT=bgra
+FMT=bgr24
 
 time ./patgen.exe -v -pattern circle     -border -header -footer -rot 90 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 time ./patgen.exe -v -pattern colorbar   -border -header -footer -rot 90 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
@@ -144,8 +143,7 @@ wait
 
 TEST=test08
 RES=1920x1080
-FMT=yuv444p
-FMT=bgra
+FMT=rgb24
 
 time ./patgen.exe -v -pattern circle     -border -header -footer -rot 270 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 time ./patgen.exe -v -pattern colorbar   -border -header -footer -rot 270 -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
