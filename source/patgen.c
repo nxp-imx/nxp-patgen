@@ -161,6 +161,8 @@ static const char help[] =
 	"\t-pix_fmt\n"
 	"\t\tSupported formats are:\n"
 	"\t\tbgra     32 bits per pixel RGB\n"
+	"\t\trgb24    24 bits per pixel RGB\n"
+	"\t\tbgr24    24 bits per pixel BGR\n"
 	"\t\trgb565le 16 bits per pixel RGB\n"
 	"\t\tyuv420p  12 bits per pixel YUV (3 planes Y, U and V)\n"
 	"\t\tyuv444p  24 bits per pixel YUV (3 planes Y, U and V)\n"
@@ -583,10 +585,16 @@ static void update_params(param_t *p)
 		strcpy(p->extension, "yuv");
 	} else if (strncmp("bgra", p->outformat, 4) == 0) {
 		p->o_fourcc = FORMAT_BGRA8888;
+	} else if (strncmp("bgr24", p->outformat, 4) == 0) {
+		p->o_fourcc = FORMAT_BGR888;
+	} else if (strncmp("rgb24", p->outformat, 4) == 0) {
+		p->o_fourcc = FORMAT_RGB888;
 	} else {
 		fprintf(stderr,
 			"\nUnsupported format. Use one of the following:\n"
 			"\tbgra - default\n"
+			"\tbgr24\n"
+			"\trgb24\n"
 			"\trgb565le\n"
 			"\tyuv420p\n"
 			"\tyuv444p\n"

@@ -97,6 +97,12 @@ typedef struct bitmap_color_s {
 (((a & MAX_RGBA)<<24) |  ((r & MAX_RGBA)<<16) | \
 ((g & MAX_RGBA)<<8) | (b & MAX_RGBA))
 
+#define BGR_PIXEL(r,g,b) \
+(((r & MAX_RGBA)<<16) | ((g & MAX_RGBA)<<8) | (b & MAX_RGBA))
+
+#define RGB_PIXEL(r,g,b) \
+(((b & MAX_RGBA)<<16) | ((g & MAX_RGBA)<<8) | (r & MAX_RGBA))
+
 /* 10-10-10-2*/
 #define BGRA10_PIXEL(r,g,b,a) \
 (((a & MAX_A2) << 30) |  ((r & MAX_RGB10) <<20) | \
@@ -136,6 +142,8 @@ typedef struct bitmap_color_s {
 
 enum {
 	FORMAT_BGRA8888,
+	FORMAT_BGR888,
+	FORMAT_RGB888,
 	FORMAT_BGR565,
 	FORMAT_NV12,
 	FORMAT_YUV444P,

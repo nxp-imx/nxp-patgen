@@ -1216,6 +1216,46 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 		/* do nothing */
 			fprintf(stderr,
 				"Converting to output FORMAT_BGRA8888 (bgra)\n");
+	} else if (bm->format ==  FORMAT_BGR888) {
+		bm->planes = 1;
+		uint8_t *buffer_out =  (uint8_t *)bm->buffer;
+		if (bm->bpc < 8) {
+			uint32_t *out =  (uint32_t *)bm->buffer;
+			fprintf(stderr,
+				"Converting to output FORMAT_BGR888 (bgr24) %d pits per pixel\n",
+				bm->bpc);
+			for (i = 0;  i < s; i++) {
+				out[i] = bitmap_bgra_to_bpc(bm->buffer[i], bm->bpc);
+			}
+		} else
+			fprintf(stderr,
+				"Converting to output FORMAT_BGR888 (bgr24)\n");
+		bm->bpp = 3;
+		for (i = 0,j = 0;  i < s; i++, j+=3) {
+			buffer_out[j]   = BGRA_RED(bm->buffer[i]);
+			buffer_out[j+1] = BGRA_GREEN(bm->buffer[i]);
+			buffer_out[j+2] = BGRA_BLUE(bm->buffer[i]);
+		}
+	} else if (bm->format ==  FORMAT_RGB888) {
+		bm->planes = 1;
+		uint8_t *buffer_out =  (uint8_t *)bm->buffer;
+		if (bm->bpc < 8) {
+			uint32_t *out =  (uint32_t *)bm->buffer;
+			fprintf(stderr,
+				"Converting to output FORMAT_RGB888 (rgb24) %d pits per pixel\n",
+				bm->bpc);
+			for (i = 0;  i < s; i++) {
+				out[i] = bitmap_bgra_to_bpc(bm->buffer[i], bm->bpc);
+			}
+		} else
+			fprintf(stderr,
+				"Converting to output FORMAT_RGB888 (rgb24)\n");
+		bm->bpp = 3;
+		for (i = 0,j = 0;  i < s; i++, j+=3) {
+			buffer_out[j]   = BGRA_BLUE(bm->buffer[i]);
+			buffer_out[j+1] = BGRA_GREEN(bm->buffer[i]);
+			buffer_out[j+2] = BGRA_RED(bm->buffer[i]);
+		}
 	} else {
 		fprintf(stderr, "Unsupported output format %c%c%c%c\n",
 			(unsigned char)bm->format >> 24,
