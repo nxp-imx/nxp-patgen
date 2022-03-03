@@ -1265,36 +1265,36 @@ static int generate_shapes(param_t *param, int m)
 	bitmap_fill_circle2(&param->bm, 400, 300,
 			       30, 60, colors[3]);
 
-	bitmap_fill_circle2(&param->bm, 900, 500,
+	bitmap_fill_circle2(&param->bm, 700, 500,
 			       50, 100, colors[4]);
 
 
 	/* roygbiv  from color checker */
-	bitmap_draw_arc(&param->bm, 1200, 300,
+	bitmap_draw_arc(&param->bm, 1200, 400,
 			 100, 120,
 			 DEG2RAD(0), DEG2RAD(180),
 			 0x00af363c);
-	bitmap_draw_arc(&param->bm, 1200, 300,
+	bitmap_draw_arc(&param->bm, 1200, 400,
 			 120, 140,
 			 DEG2RAD(0), DEG2RAD(180),
 			 0x00d67e2c);
-	bitmap_draw_arc(&param->bm, 1200, 300,
+	bitmap_draw_arc(&param->bm, 1200, 400,
 			 140, 160,
 			 DEG2RAD(0), DEG2RAD(180),
 			 0x00e7c71f);
-	bitmap_draw_arc(&param->bm, 1200, 300,
+	bitmap_draw_arc(&param->bm, 1200, 400,
 			  160, 180,
 			  DEG2RAD(0), DEG2RAD(180),
 			  0x00469449);
-	bitmap_draw_arc(&param->bm, 1200, 300,
+	bitmap_draw_arc(&param->bm, 1200, 400,
 			 180, 200,
 			 DEG2RAD(0), DEG2RAD(180),
 			 0x00627a9d);
-	bitmap_draw_arc(&param->bm, 1200, 300,
+	bitmap_draw_arc(&param->bm, 1200, 400,
 			  200, 220,
 			  DEG2RAD(0), DEG2RAD(180),
 			  0x00505ba6);
-	bitmap_draw_arc(&param->bm, 1200, 300,
+	bitmap_draw_arc(&param->bm, 1200, 400,
 			  220, 240,
 			  DEG2RAD(0), DEG2RAD(180),
 			  0x00383d96);

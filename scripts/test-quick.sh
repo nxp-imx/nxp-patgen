@@ -18,11 +18,12 @@ time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pi
 time ./patgen.exe -v -pattern wheel      -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 time ./patgen.exe -v -pattern font       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 time ./patgen.exe -v -pattern colorcheck -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
-time ./patgen.exe -v -pattern shapes     -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 time ./patgen.exe -v -pattern logo       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 
 RES=1920x1080
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
+time ./patgen.exe -v -pattern shapes     -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
+
 RES=3840x2160
 time ./patgen.exe -v -pattern test       -border -header -footer -vsize $RES -pix_fmt $FMT -outname "$DIR/$TEST" &
 
