@@ -106,7 +106,7 @@ usage:
 		yuva444  32 bits per pixel YUV (1 plane  Y, U, V, and A YUVA)
 		yuv444   24 bits per pixel YUV (1 plane  Y, U and V YUV)
 		yuvj444p 24 bits per pixel YUV full color range (1 plane  Y, U and V YUV)
-		yuvy422  16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)
+		yuyv422  16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)
 		nv12     12 bits per pixel YUV (2 planes Y and UV)
 
 	-range - YUV color range

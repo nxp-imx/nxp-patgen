@@ -169,7 +169,7 @@ static const char help[] =
 	"\t\tyuva444  32 bits per pixel YUV (1 plane  Y, U, V, and A YUVA)\n"
 	"\t\tyuv444   24 bits per pixel YUV (1 plane  Y, U and V YUV)\n"
 	"\t\tyuvj444p 24 bits per pixel YUV full color range (1 plane  Y, U and V YUV)\n"
-	"\t\tyuvy422  16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)\n"
+	"\t\tyuyv422  16 bits per pixel YUV (1 plane  Y, U, Y, and V YUYV)\n"
 	"\t\tnv12     12 bits per pixel YUV (2 planes Y and UV)\n\n"
 	"\t-range - YUV color range\n"
 	"\t\tSets the color range 0/1 = limited/full\n\n"
