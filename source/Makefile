@@ -27,7 +27,7 @@ ifeq ($(DEBUG), 1)
 else
     CFLAGS +=-DNDEBUG  $(OFLAGS)
 endif
-CFLAGS += $(INCLUDES)
+CFLAGS += $(INCLUDES) -std=gnu99
 LDFLAGS += -Os -O2 $(LIBS)
 
 all: $(EXE)
