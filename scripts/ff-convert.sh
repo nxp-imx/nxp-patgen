@@ -2,8 +2,14 @@
 outformat=$2
 outextension=$2
 
+if [ $# -lt 3 ]
+then
+    resolution=`echo $1 | awk -F'-' '{print $3}'`
+else
+    resolution=$3
+fi
+
 outfilebase=`echo $1 | awk -F'-' '{print $1 "-" $2}'`
-resolution=`echo $1 | awk -F'-' '{print $3}'`
 informat=`echo $1 | awk -F'-' '{print $4}' | awk -F. '{print $1}' | awk -F_ '{print $1}'`
 informat_str=`echo $1 | awk -F'-' '{print $4}' | awk -F. '{print $1}'`
 
@@ -12,7 +18,7 @@ echo "debug = $debug"
 
 outfile=${outfilebase}-${resolution}-${informat_str}-${outformat}.${outextension}
 
-echo converting ${1} from ${informat} to ${outformat}
+#echo converting ${1} from ${informat} to ${outformat}
 #echo resolution is ${resolution}
 #echo "informat: ${informat}"
 #echo "outfile: ${outfile}"
