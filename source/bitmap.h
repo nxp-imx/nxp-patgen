@@ -151,6 +151,7 @@ enum {
 	FORMAT_YUV444,
 	FORMAT_YUVA444,
 	FORMAT_YUYV422,
+	FORMAT_16BIT,
 };
 
 typedef struct {

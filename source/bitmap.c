@@ -1093,6 +1093,15 @@ static int bitmap_convert_buffer(bitmap_t *bm)
 		}
 		bm->bpp = 2;
 		bm->planes = 1;
+	} else if (bm->format == FORMAT_16BIT) {
+		uint16_t *buffer_out =  (uint16_t *)bm->buffer;
+		fprintf(stderr,
+			"Converting to output FORMAT_16BIT (16-bit generic)\n");
+		for (i = 0;  i < s; i++) {
+			buffer_out[i] = bm->buffer[i] & 0xffff;
+		}
+		bm->bpp = 2;
+		bm->planes = 1;
 	} else if (bm->format == FORMAT_YUYV422) {
 		uint32_t *buffer_out =  (uint32_t *)bm->buffer;
 		fprintf(stderr,

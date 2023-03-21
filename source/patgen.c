@@ -157,13 +157,14 @@ static const char help[] =
 	"\t\twheel\t\tCreates an HSV color wheel. The -i sets the V\n"
 	"\t\t\t\t(value) for HSV.\n\n"
 	"\t\t16m_colors\tCreates an 4096x4096 color burst of 16\n"
-	"\t\t\t\tmillion colors.\n\n"
+	"\t\t\t\tmillion colors. Pixel value increments monotonically\n\n"
 	"\t-pix_fmt\n"
 	"\t\tSupported formats are:\n"
 	"\t\tbgra     32 bits per pixel RGB\n"
 	"\t\trgb24    24 bits per pixel RGB\n"
 	"\t\tbgr24    24 bits per pixel BGR\n"
 	"\t\trgb565le 16 bits per pixel RGB\n"
+	"\t\t16-bit   16 bits per pixel GENERIC\n"
 	"\t\tyuv420p  12 bits per pixel YUV (3 planes Y, U and V)\n"
 	"\t\tyuv444p  24 bits per pixel YUV (3 planes Y, U and V)\n"
 	"\t\tyuva444  32 bits per pixel YUV (1 plane  Y, U, V, and A YUVA)\n"
@@ -561,6 +562,8 @@ static void update_params(param_t *p)
 
 	if (strncmp("rgb565le", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_BGR565;
+	}else if (strncmp("16-bit", p->outformat, 7) == 0) {
+		p->o_fourcc = FORMAT_16BIT;
 	} else if (strncmp("yuv444p", p->outformat, 8) == 0) {
 		p->o_fourcc = FORMAT_YUV444P;
 		strcpy(p->extension, "yuv");
