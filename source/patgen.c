@@ -1733,9 +1733,6 @@ static int generate_16m_colors(param_t *param, int m)
 	r = param->w - m;
 	b = param->h - m;
 
-	bitmap_hsv_rectangle(&param->bm, l, t, r, b,
-			     (b - t) / 16, param->intensity, 360.0);
-
 	bitmap_16m_colors(&param->bm, l, t, r, b);
 
 	return 0;
