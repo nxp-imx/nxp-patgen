@@ -296,6 +296,11 @@ void bitmap_set_color_space(bitmap_t *bm, uint32_t space)
 	bm->color_space = space;
 }
 
+void bitmap_set_tile(bitmap_t *bm, uint32_t tile)
+{
+	bm->tile = tile; 
+}
+
 uint32_t bitmap_set_alpha(bitmap_t *bm, uint32_t color, double alpha)
 {
 	uint8_t r, g, b, a;
@@ -1064,6 +1069,55 @@ static int bitmap_rotate_buffer(bitmap_t *bm)
 	return 0;
 }
 
+static int bitmap_tile_buffer(bitmap_t *bm)
+{
+	int x, y, w, h, i = 0, j = 0, s, tileh, tilew;
+	w = MAX(bm->stride, bm->w);
+	h = bm->h;
+	s = MAX(h, w) * MAX(h, w) * RGB_BUFFER_BYTES + 1024;
+
+	uint32_t *temp_buffer;
+
+	fprintf(stderr, "Tiling buffer buffer to tile format %d\n", bm->tile);
+
+	if (bm->tile == TILE_NONE) {
+		return 0;
+	}
+
+	temp_buffer = (uint32_t *)malloc(s);
+	if (temp_buffer == NULL) {
+		fprintf(stderr, "Failed to allocate rotation buffer\n");
+		return 1;
+	}
+
+	if (bm->tile == TILE_2x2) {
+		tileh = 2;
+		tilew = 2;
+		for (y = 0, i = 0;  y < h ; y += tileh) {
+			for (x = 0;  x < w; x += tilew, i += tilew * tileh) {
+				//i = (y * w) + x;
+				j = (y * w) + x;
+				temp_buffer[i] = bm->buffer[j];
+				temp_buffer[i + 1] = bm->buffer[j + 1];
+
+				j = ((y + 1) * w) + x;
+				temp_buffer[i + 2] = bm->buffer[j];
+				temp_buffer[i + 3] = bm->buffer[j + 1];
+
+				PRINTD5(bm->debug, "tb %x %x %x %x b %x x %d y %d i %d j %d\n",
+					temp_buffer[i], temp_buffer[i + 1], temp_buffer[i + 2], temp_buffer[i + 3], bm->buffer[j], x, y, i, j);
+			}
+		}
+	} else {
+		fprintf(stderr, "Unsupported tile output format/n");
+	}
+	free(bm->buffer);
+
+	bm->buffer = temp_buffer;
+
+	return 0;
+}
+
 static int bitmap_convert_buffer(bitmap_t *bm)
 {
 	int i, j, k, l, s;
@@ -1283,6 +1337,7 @@ int bitmap_write_file(bitmap_t *bm, char *out)
 	/* bitmap_dump(bm);*/
 
 	bitmap_rotate_buffer(bm);
+	bitmap_tile_buffer(bm);
 	bitmap_convert_buffer(bm);
 
 	fprintf(stderr, "Opening outfile %s\n", out);

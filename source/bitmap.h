@@ -18,6 +18,7 @@ typedef struct bitmap_s {
 	uint32_t h;
 	uint32_t stride;
 	uint32_t format;
+	uint32_t tile;
 	uint16_t rotation;
 	uint8_t color_space;
 	uint8_t color_range_full;
@@ -154,6 +155,11 @@ enum {
 	FORMAT_16BIT,
 };
 
+enum {
+	TILE_NONE,
+	TILE_2x2,
+};
+
 typedef struct {
 	int x,y;
 } point;
@@ -166,6 +172,7 @@ void bitmap_set_debug(bitmap_t *bm, int level);
 void bitmap_set_stuckbits(bitmap_t *bm, uint32_t zero, uint32_t one);
 void bitmap_set_color_range(bitmap_t *bm, uint32_t range);
 void bitmap_set_color_space(bitmap_t *bm, uint32_t space);
+void bitmap_set_tile(bitmap_t *bm, uint32_t tile);
 int bitmap_is_yuv(unsigned int f);
 
 uint32_t bitmap_get_color(bitmap_t *bm, char *name, uint32_t *color);

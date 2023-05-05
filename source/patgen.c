@@ -25,6 +25,7 @@
 #define DEFAULT_PATTERN         "font"
 #define DEFAULT_EXTENSION       "rgb"
 #define DEFAULT_OUTPUT_FORMAT   "bgra"
+#define DEFAULT_OUTPUT_TILE     "none"
 #define DEFAULT_HEIGHT           0
 #define DEFAULT_WIDTH            0
 #define DEFAULT_SIZE            "640x480"
@@ -75,7 +76,9 @@ typedef struct param_s {
 	char fb[MAX_PATH];
 	char extension[16];
 	char outformat[MAX_PREFIX];
+	char outtile[MAX_PREFIX];
 	unsigned int o_fourcc;
+	unsigned int o_tile;
 	unsigned int bpc;
 	unsigned int color_range;
 	unsigned int color_space;
@@ -182,6 +185,8 @@ static const char help[] =
 	"\t\tSets the number steps in the graybar pattern\n\n"
 	"\t-stride [stride (pixels)] Sets the stride if it is larger the width\n\n"
 	"\t\tSets the size of the checker board squares in pixels\n\n"
+	"\t-tile  translate to a tile memory format\n\n"
+	"\t\t2x2  2 row by 2 column pixel memory tiles\n\n"
 	"\t-v -verbose\n\t\tEchos the command parameters\n\n"
 	"\t-vs -vsize [WxH (pixelsXlines)] Sets the width and height of the output.\n"
 	"\t\tDefault is 640x480\n\n"
@@ -207,6 +212,7 @@ enum {
 	OPT_FB,
 	OPT_COLOR_RANGE,
 	OPT_COLOR_SPACE,
+	OPT_TILE,
 };
 
 static struct option long_options[] =
@@ -238,6 +244,7 @@ static struct option long_options[] =
 	{ "fb",      required_argument,       0, OPT_FB },
 	{ "range",   required_argument,       0, OPT_COLOR_RANGE },
 	{ "space",   required_argument,       0, OPT_COLOR_SPACE },
+	{ "tile",   required_argument,        0, OPT_TILE },
 	{ 0, 0, 0, 0 }
 };
 
@@ -303,6 +310,12 @@ static int command_parse(int argc, char **argv, param_t *p)
 			if (p->verbose)
 				fprintf(stderr, "-space =     %d\n",
 					p->color_range);
+			break;
+		case OPT_TILE:
+			snprintf(p->outtile, sizeof(p->outtile), "%s", optarg);
+			if (p->verbose)
+				fprintf(stderr, "-tile  =     %s\n",
+					p->outtile);
 			break;
 		case '0':
 			p->zero = strtoul(optarg, NULL, 0);
@@ -516,8 +529,10 @@ static void set_params(param_t *p)
 	p->alpha = 100.0;
 	p->bpc = 8;
 	p->o_fourcc = FORMAT_BGRA8888; /* bgra */
+	p->o_tile = TILE_NONE; /* raster scan: left -> right, top -> down */
 	strcpy(p->pattern, DEFAULT_PATTERN);
 	strcpy(p->outformat, DEFAULT_OUTPUT_FORMAT);
+	strcpy(p->outtile, DEFAULT_OUTPUT_TILE);
 	strcpy(p->extension, DEFAULT_EXTENSION);
 	strcpy(p->size, DEFAULT_SIZE);
 	strcpy(p->fb, "");
@@ -609,6 +624,21 @@ static void update_params(param_t *p)
 			);
 		exit(0);
 	}
+
+	if (strncmp("2x2", p->outtile, 3) == 0) {
+		p->o_tile = TILE_2x2;
+		bitmap_set_tile(&p->bm, p->o_tile);
+	} else if (strncmp("none", p->outtile, 4) == 0) {
+		p->o_tile = TILE_NONE;
+		//bitmap_set_tile(&p->bm, p->o_tile);
+	} else {
+		fprintf(stderr,
+			"\nUnsupported tile format (%s). Use one of the following:\n"
+			"\t2x2\n",
+			p->outtile);
+		exit(0);
+	}
+
 	/* default is bgra */
 	set_file_name(p);
 }
@@ -642,6 +672,7 @@ static void show_params(param_t *p)
 	fprintf(stderr, "color_space:             %8d\n", p->color_space);
 	fprintf(stderr, "color_range:             %8d\n", p->color_range);
 	fprintf(stderr, "grid:                    %8d\n", p->grid);
+	fprintf(stderr, "output tile:             %8d\n", p->o_tile);
 	fprintf(stderr, "size:                           %s\n", p->size);
 	fprintf(stderr, "pattern:                        %s\n", p->pattern);
 	fprintf(stderr, "pattern file:                   %s\n", p->out);
