@@ -52,11 +52,19 @@ test-quick: all
 	mkdir -p ../patgen_test
 	time ../scripts/test-quick.sh ../patgen_test
 
+test-grid: all
+	mkdir -p ../patgen_test
+	time ../scripts/test-grid.sh ../patgen_test
+
+test-panel: all
+	mkdir -p ../patgen_test
+	time ../scripts/test-panel.sh ../patgen_test
+
 test: all
 	mkdir -p ../patgen_test
 	time ../scripts/test.sh ../patgen_test
 
-test-all: all test-quality test-quick test
+test-all: all test-quality test-quick ptest-panel test
 
 convert-all:
 	time ../scripts/run-ff-convert.sh ../patgen_test
