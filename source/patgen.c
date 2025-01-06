@@ -1532,8 +1532,9 @@ static int generate_font(param_t *param, int m)
 
 static int generate_grid(param_t *param)
 {
-	int x, y, r, h, w, l, t, b, x_step, y_step;
+	int x, y, r, h, w, l, t, b, i;
 	uint32_t bw[2];
+	uint32_t c;
 
 	if (param->grid == 0) {
 		return 0;
@@ -1550,27 +1551,57 @@ static int generate_grid(param_t *param)
 	w = r - l;
 	h = b - t;
 
-	x_step =  round(w * 0.1);
-	y_step =  round(h * 0.1);
+	for (i = 0; i < 20; i++ ) {
+		x = round((double)(w * i) / 20.0);
+		y = round((double)(h * i) / 20.0);
 
-	fprintf(stderr, "%s(): l %d t %d b %d r %d\n",
-		__func__, l, t, r, b);
+		if (i % 2 != 0) {
+			c = bw[1];
 
-	for (y = 0; y <= b; y++) {
-		for (x = 0; x <= r; x++) {
-			if (y % (y_step) == 0)
-				bitmap_draw_pixel(&param->bm, x, y, bw[0]);
-			else if (y % (y_step / 2) == 0)
-				bitmap_draw_pixel(&param->bm, x, y, bw[1]);
-			else if (x % (x_step) == 0)
-				bitmap_draw_pixel(&param->bm, x, y, bw[0]);
-			else if (x % (x_step / 2) == 0)
-				bitmap_draw_pixel(&param->bm, x, y, bw[1]);
+			fprintf(stderr, "%s(): x %d y %d\n",
+				__func__, x, y);
 
-			if ((x == r) || (y == b))
-				bitmap_draw_pixel(&param->bm, x, y, bw[0]);
+			bitmap_draw_simple_line(&param->bm,
+						x, t,
+						x, b,
+						c);
+			bitmap_draw_simple_line(&param->bm,
+						l, y,
+						r, y,
+						c);
 		}
 	}
+
+	for (i = 0; i < 20; i++) {
+		x = round((double)(w * i) / 20.0);
+		y = round((double)(h * i) / 20.0);
+
+		if (i % 2 == 0) {
+			c = bw[0];
+
+			fprintf(stderr, "%s(): x %d y %d\n",
+				__func__, x, y);
+
+			bitmap_draw_simple_line(&param->bm,
+						x, t,
+						x, b,
+						c);
+			bitmap_draw_simple_line(&param->bm,
+						l, y,
+						r, y,
+						c);
+		}
+	}
+	bitmap_draw_simple_line(&param->bm,
+				l, b,
+				r, b,
+				c);
+	bitmap_draw_simple_line(&param->bm,
+				r, t,
+				r, b,
+				c);
+
+	fprintf(stderr, "%s(): l %d t %d b %d r %d\n", __func__, l, t, r, b);
 
 	return 0;
 }

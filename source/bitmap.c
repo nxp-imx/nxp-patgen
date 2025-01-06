@@ -577,6 +577,30 @@ int bitmap_draw_line2(bitmap_t *bm,
 	return 0;
 }
 
+int bitmap_draw_simple_line(bitmap_t *bm,
+			    int x0, int y0,
+			    int x1, int y1,
+			    uint32_t pixel)
+{
+	int x, y;
+
+	PRINTD2(bm->debug, "%s(): x0 %d y0 %d x1 %d y1 %d pixel 0x%08x\n",
+		__func__, x0, y0, x1, y1, pixel);
+
+	if (x0 != x1) {
+		for (x = x0; x <= x1; x++) {
+			bitmap_draw_pixel(bm, x, y0, pixel);
+		}
+	} else if (y0 != y1) {
+		for (y = y0; y <= y1; y++) {
+			bitmap_draw_pixel(bm, x0, y, pixel);
+		}
+	} else {
+		fprintf(stderr, "Not a simple line must be vertical or horizontal/n");
+	}
+	return 0;
+}
+
 int bitmap_draw_circle(bitmap_t *bm, int x0, int y0,
 		       int r0, uint32_t v)
 {
